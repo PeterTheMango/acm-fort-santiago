@@ -74,6 +74,11 @@ import Link from "next/link"
               <div
                 className="h-full rounded-full bg-primary transition-all"
                 style={{ width: `${percent}%` }}
+                role="progressbar"
+                aria-valuenow={percent}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Course progress"
               />
             </div>
           </div>

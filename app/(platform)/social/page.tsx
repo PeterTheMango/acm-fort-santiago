@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -176,6 +176,10 @@ export default function SocialPage() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 12; // 3 rows at lg (4 per row)
+
+  useEffect(() => {
+    setPage(1);
+  }, [query]);
 
   const users = useMemo<RecommendedUser[]>(() => {
     // Flatten sections into a single users array; if duplicates, keep the highest mutualCount
