@@ -153,6 +153,14 @@ const allPlayers = [
   },
 ];
 
+/**
+ * Render the Leaderboard page containing top-stat cards and a global ranking table.
+ *
+ * Uses the file's static mock data to populate three statistic cards (points, experience, challenges)
+ * and a scrollable table of player rankings with avatars and formatted points.
+ *
+ * @returns The page's JSX element showing the Leaderboard UI populated from mock data
+ */
 export default function LeaderboardPage() {
   return (
     <div className="min-h-screen p-6">
