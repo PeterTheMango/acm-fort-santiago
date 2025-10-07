@@ -27,10 +27,10 @@ export const metadata: Metadata = {
 };
 
 /**
- * Application root layout that wraps page content in an HTML skeleton and applies global font variables and antialiasing.
+ * Root layout component that renders the HTML skeleton, applies global font variables and antialiasing, and provides an authentication header.
  *
  * @param children - The page content to render inside the `<body>` element.
- * @returns The root HTML element containing a `<body>` with font-related CSS variables and `children`.
+ * @returns The root HTML element containing a `<body>` with font-related CSS variables, an authentication header, and the provided `children`.
  */
 export default function RootLayout({
   children,
