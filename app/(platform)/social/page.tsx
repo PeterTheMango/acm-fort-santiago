@@ -234,11 +234,15 @@ export default function SocialPage() {
           Find people to connect with. Search by name or badge.
         </p>
         <div className="mt-4">
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search users by name or skill..."
-          />
+          <div className="mt-4">
+            <Input
+              id="social-search"
+              aria-label="Search users by name or skill"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search users by name or skill..."
+            />
+          </div>
         </div>
         <div className="mt-3 flex items-center justify-end gap-2">
           {filtered.length > 0 ? (
