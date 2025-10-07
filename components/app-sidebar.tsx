@@ -67,10 +67,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader className="py-4">
+      <SidebarHeader className="py-4 bg-primary">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild className="h-16 py-3">
+            <SidebarMenuButton size="lg" asChild className="h-16 py-3 text-primary-foreground hover:bg-primary hover:text-primary-foreground">
               <Link href="/">
                 <Image
                   src="/logo.png"

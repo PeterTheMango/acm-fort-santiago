@@ -21,19 +21,21 @@ function getOwnerProfileMock() {
     fullName: "Alex Student",
     avatarUrl: undefined as string | undefined,
     level: 7,
+    studentId: "2021-12345",
     badges: [
-      { id: "b1", label: "ACM Member", iconSrc: "/badge.svg" },
-      { id: "b2", label: "Hackathon", iconSrc: "/award.svg" },
+      { id: "b1", label: "ACM Member", iconSrc: "/badge.png" },
+      { id: "b2", label: "Hackathon", iconSrc: "/badge.png" },
+      { id: "b3", label: "Top Contributor", iconSrc: "/badge.png" },
     ],
     bio:
-      "I’m an active member of ACM UDST Student Chapter, passionate about web and systems programming.",
+      "I'm an active member of ACM UDST Student Chapter, passionate about web and systems programming.",
     achievements: [
       {
         id: "a1",
         title: "Completed 10 Challenges",
         description: "Solved 10 weekly coding challenges.",
         points: 100,
-        iconSrc: "/achievement.svg",
+        iconSrc: "/achievement.png",
       },
     ] as Achievement[],
     awards: [
@@ -42,7 +44,7 @@ function getOwnerProfileMock() {
         title: "Member of the Month",
         issuer: "ACM UDST",
         date: "Sep 2025",
-        iconSrc: "/award.svg",
+        iconSrc: "/gold.png",
       },
     ] as Award[],
   }
@@ -63,57 +65,96 @@ export default async function Page() {
   const hasAchievements = data.achievements && data.achievements.length > 0
   const hasAwards = data.awards && data.awards.length > 0
 
+  const displayedAchievements = data.achievements.slice(0, 3)
+  const displayedAwards = data.awards.slice(0, 3)
+
   return (
-    <div className="container mx-auto max-w-5xl py-8 space-y-8">
-      <ProfileHeader
-        isOwner
-        fullName={data.fullName}
-        avatarUrl={data.avatarUrl}
-        level={data.level}
-        badges={data.badges}
-      />
+    <div className="container mx-auto max-w-5xl py-8">
+      <div className="bg-card rounded-lg border shadow-sm p-6 space-y-8">
+        {/* Header Section */}
+        <ProfileHeader
+          isOwner
+          fullName={data.fullName}
+          avatarUrl={data.avatarUrl}
+          level={data.level}
+          studentId={data.studentId}
+          badges={data.badges}
+        />
 
-      <ProfileSection
-        title="Bio"
-        description="Your public introduction."
-        isEmpty={isEmptyBio}
-        emptyTitle="No bio yet"
-        emptyDescription="Tell others a bit about yourself."
-      >
-        <p className="text-sm leading-6 text-foreground/90">{data.bio}</p>
-      </ProfileSection>
+        {/* Bio Section */}
+        <div>
+          <ProfileSection
+            title="User Biography"
+            description="Your public introduction."
+            isEmpty={isEmptyBio}
+            emptyTitle="No bio yet"
+            emptyDescription="Tell others a bit about yourself."
+          >
+            <p className="text-sm leading-6 text-foreground/90">{data.bio}</p>
+          </ProfileSection>
+        </div>
 
-      <ProfileSection
-        title="Achievements"
-        description="Milestones you’ve unlocked in the chapter."
-        isEmpty={!hasAchievements}
-        emptyTitle="No achievements yet"
-        emptyDescription="Complete activities to unlock achievements."
-      >
-        <TooltipProvider>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {data.achievements.map((a) => (
-              <AchievementCard key={a.id} achievement={a} />
-            ))}
+        {/* Achievements and Awards Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Achievements Section */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold">Achievements</h2>
+                <p className="text-sm text-muted-foreground">Milestones you've unlocked in the chapter.</p>
+              </div>
+              {data.achievements.length > 3 && (
+                <button className="text-sm text-primary hover:underline">
+                  View All
+                </button>
+              )}
+            </div>
+            {!hasAchievements ? (
+              <div className="text-center py-8">
+                <p className="font-medium text-muted-foreground">No achievements yet</p>
+                <p className="text-sm text-muted-foreground">Complete activities to unlock achievements.</p>
+              </div>
+            ) : (
+              <TooltipProvider>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {displayedAchievements.map((a) => (
+                    <AchievementCard key={a.id} achievement={a} />
+                  ))}
+                </div>
+              </TooltipProvider>
+            )}
           </div>
-        </TooltipProvider>
-      </ProfileSection>
 
-      <ProfileSection
-        title="Awards"
-        description="Recognition from events and contributions."
-        isEmpty={!hasAwards}
-        emptyTitle="No awards yet"
-        emptyDescription="Earn recognition for your contributions."
-      >
-        <TooltipProvider>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {data.awards.map((w) => (
-              <AwardCard key={w.id} award={w} />
-            ))}
+          {/* Awards Section */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold">Awards</h2>
+                <p className="text-sm text-muted-foreground">Recognition from events and contributions.</p>
+              </div>
+              {data.awards.length > 3 && (
+                <button className="text-sm text-primary hover:underline">
+                  View All
+                </button>
+              )}
+            </div>
+            {!hasAwards ? (
+              <div className="text-center py-8">
+                <p className="font-medium text-muted-foreground">No awards yet</p>
+                <p className="text-sm text-muted-foreground">Earn recognition for your contributions.</p>
+              </div>
+            ) : (
+              <TooltipProvider>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {displayedAwards.map((w) => (
+                    <AwardCard key={w.id} award={w} />
+                  ))}
+                </div>
+              </TooltipProvider>
+            )}
           </div>
-        </TooltipProvider>
-      </ProfileSection>
+        </div>
+      </div>
     </div>
   )
 }
