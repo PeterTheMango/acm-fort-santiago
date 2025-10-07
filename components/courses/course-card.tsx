@@ -41,12 +41,21 @@ export function CourseCard(props: Props) {
 
   return (
     <Card className="overflow-hidden">
+// at the top of components/courses/course-card.tsx, add the Image import
+import Image from "next/image"
+import Link from "next/link"
+
+// …later in your JSX…
+
       <div className="aspect-[16/9] w-full bg-muted">
-        <img
-          src={`${bannerUrl}&ixlib=rb-4.0.3`}
+        <Image
+          src={bannerUrl}
           alt={title}
           className="h-full w-full object-cover"
           loading="lazy"
+          width={640}
+          height={360}
+          unoptimized={bannerUrl.includes("unsplash")}
         />
       </div>
       <CardHeader>
