@@ -1,6 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
+/**
+ * Render skeleton placeholders for the courses page while content loads.
+ *
+ * @returns A React element containing header skeletons and two responsive grids of placeholder course cards (featured and browse).
+ */
 export default function Loading() {
   return (
     <div className="mx-auto w-full max-w-7xl p-4 md:p-6 lg:p-8">
@@ -60,5 +65,4 @@ export default function Loading() {
     </div>
   )
 }
-
 

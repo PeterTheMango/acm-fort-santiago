@@ -1,5 +1,11 @@
 "use client"
 
+/**
+ * Render a simple error UI that displays a generic heading and the provided error's message.
+ *
+ * @param error - The Error object to display; may include an optional `digest` string for identification.
+ * @returns The React element showing the error heading and message.
+ */
 export default function Error({ error }: { error: Error & { digest?: string } }) {
   return (
     <div className="container mx-auto max-w-4xl py-12">
@@ -10,5 +16,4 @@ export default function Error({ error }: { error: Error & { digest?: string } })
     </div>
   )
 }
-
 

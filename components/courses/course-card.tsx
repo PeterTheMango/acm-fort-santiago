@@ -22,6 +22,12 @@ type EnrolledProps = BaseProps & {
 
 type Props = BrowseProps | EnrolledProps
 
+/**
+ * Renders a course card showing banner, title, author, and a mode-dependent CTA and progress.
+ *
+ * @param props - Component props. When `mode` is "browse", the card links to `/courses/{slug}` and may show `description`. When `mode` is "enrolled", the card links to `/courses/{slug}/learn`, displays a "Resume" CTA, and—if `totalLessons > 0`—shows completion percentage computed from `completedLessons` / `totalLessons`.
+ * @returns The JSX element for the course card.
+ */
 export function CourseCard(props: Props) {
   const { slug, title, author, bannerUrl } = props
 
@@ -73,5 +79,4 @@ export function CourseCard(props: Props) {
     </Card>
   )
 }
-
 

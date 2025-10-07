@@ -2,6 +2,12 @@
 
 import { useEffect } from "react";
 
+/**
+ * Displays a generic error UI and logs the provided error to the console.
+ *
+ * @param error - The error being reported; may include an optional `digest` string for tracking.
+ * @returns A React element that shows a brief error message and retry guidance.
+ */
 export default function Error({ error }: { error: Error & { digest?: string } }) {
   useEffect(() => {
     // eslint-disable-next-line no-console
@@ -17,5 +23,4 @@ export default function Error({ error }: { error: Error & { digest?: string } })
     </div>
   );
 }
-
 

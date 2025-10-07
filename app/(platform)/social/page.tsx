@@ -28,6 +28,12 @@ type RecommendationSection = {
   users: RecommendedUser[];
 };
 
+/**
+ * Produce uppercase initials from a person's full name.
+ *
+ * @param name - The full name to extract initials from
+ * @returns The initials in uppercase formed from the first character of the first and last name parts; for a single-part name returns one initial, and for an empty or whitespace-only string returns an empty string
+ */
 function getInitials(name: string) {
   const parts = name.trim().split(" ");
   const first = parts[0]?.[0] ?? "";
@@ -108,6 +114,12 @@ const sections: RecommendationSection[] = [
   },
 ];
 
+/**
+ * Render a recommendation card for a user, showing avatar (or initials), name, optional mutual count, badges, and action buttons.
+ *
+ * @param user - The recommended user object to display
+ * @returns A React element representing the user's card
+ */
 function UserCard({ user }: { user: RecommendedUser }) {
   return (
     <Card className="overflow-hidden">
@@ -148,6 +160,13 @@ function UserCard({ user }: { user: RecommendedUser }) {
   );
 }
 
+/**
+ * Render the Social recommendations page with searchable, paginated user cards.
+ *
+ * Provides a search input (filters by name or badge), pagination controls, and a responsive grid of user cards showing avatars, badges, and actions.
+ *
+ * @returns A JSX element containing the social recommendations UI
+ */
 export default function SocialPage() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);

@@ -1,6 +1,15 @@
 import { CourseCard } from "@/components/courses/course-card"
 import { browseCourses, yourCourses } from "@/lib/courses"
 
+/**
+ * Render the Courses page with "Your Courses" and "Browse Courses" sections.
+ *
+ * The top-level layout contains a responsive container that renders:
+ * - "Your Courses": a grid of enrolled course cards showing title, author, banner, and progress (completed and total lessons).
+ * - "Browse Courses": a grid of browseable course cards showing title, description, author, and banner.
+ *
+ * @returns The page's top-level JSX element containing both course sections and their responsive grids of CourseCard components.
+ */
 export default function CoursesPage() {
   return (
     <div className="mx-auto w-full max-w-7xl p-4 md:p-6 lg:p-8">
