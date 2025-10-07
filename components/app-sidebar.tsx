@@ -5,11 +5,11 @@ import {
   LayoutDashboard,
   BookOpen,
   Calendar,
-  GalleryVerticalEnd,
   Trophy,
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { NavUser } from "@/components/nav-user";
@@ -71,8 +71,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <GalleryVerticalEnd className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden">
+                  <Image
+                    src="/logo.png"
+                    alt="ACM Fort Santiago"
+                    width={32}
+                    height={32}
+                    className="object-contain"
+                  />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-medium">ACM Fort Santiago</span>
