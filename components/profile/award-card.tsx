@@ -30,13 +30,25 @@ export function AwardCard({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className={cn("rounded-lg border p-3 bg-card hover:bg-accent/30 transition-colors flex items-center justify-center", className)}>
+        <button
+          type="button"
+          className={cn(
+            "rounded-lg border p-3 bg-card hover:bg-accent/30 transition-colors flex items-center justify-center",
+            className
+          )}
+        >
           {award.iconSrc ? (
-            <Image src={award.iconSrc} alt={award.title} width={48} height={48} />
+            <Image
+              src={award.iconSrc}
+              alt={award.title}
+              width={48}
+              height={48}
+            />
           ) : (
             <div className="size-12 rounded-md bg-muted" />
           )}
-        </div>
+        </button>
+      </TooltipTrigger>
       </TooltipTrigger>
       <TooltipContent>
         <div className="max-w-[220px]">
