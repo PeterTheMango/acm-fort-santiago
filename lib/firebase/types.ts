@@ -36,4 +36,14 @@ export interface CreateUserData {
 	displayedBadges?: UserBadges[];
 }
 
+export interface UserConnections {
+    id: string;
+    connectedOn: Timestamp;
+}
+
+export interface UserConnectionRequest {
+    id: string; // requester user id
+    requestedOn: Timestamp;
+}
+
 

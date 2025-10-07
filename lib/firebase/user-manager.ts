@@ -12,9 +12,11 @@ import {
 } from "firebase/firestore";
 import { db } from "@/firebase";
 import type {
-	User,
-	CreateUserData,
-	UserBadges,
+    User,
+    CreateUserData,
+    UserBadges,
+    UserConnections,
+    UserConnectionRequest,
 } from "./types";
 
 const USERS_COLLECTION = "users";
@@ -169,6 +171,9 @@ import { collection as coll, getDocs, addDoc, doc as docRef, where } from "fireb
 import { existsDoc, addOne, getOne, queryOne } from "@/service/firebase-service";
 import { currentUser } from "@clerk/nextjs/server";
 
+const CONNECTIONS_SUB = "connections";
+const REQUESTS_SUB = "connectionRequests";
+
 export async function listUserBadges(userId: string): Promise<UserBadges[]> {
 	const c = coll(db, `${USERS_COLLECTION}/${userId}/badges`);
 	const snap = await getDocs(c);
@@ -317,4 +322,82 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
 		console.error("Error fetching user by email:", error);
 		return undefined;
 	}
+}
+
+
+// --- Connections -------------------------------------------------------------
+
+export async function listConnections(userId: string, limit?: number): Promise<UserConnections[]> {
+    const c = coll(db, `${USERS_COLLECTION}/${userId}/${CONNECTIONS_SUB}`);
+    const snap = await getDocs(c);
+    const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as UserConnections[];
+    return typeof limit === "number" ? items.slice(0, Math.max(0, limit)) : items;
+}
+
+export async function areUsersConnected(a: string, b: string): Promise<boolean> {
+    const ref = doc(db, `${USERS_COLLECTION}/${a}/${CONNECTIONS_SUB}`, b);
+    const snap = await getDoc(ref);
+    return snap.exists();
+}
+
+export async function removeConnection(a: string, b: string): Promise<void> {
+    await Promise.all([
+        deleteDoc(doc(db, `${USERS_COLLECTION}/${a}/${CONNECTIONS_SUB}`, b)),
+        deleteDoc(doc(db, `${USERS_COLLECTION}/${b}/${CONNECTIONS_SUB}`, a)),
+    ]);
+}
+
+// Requests
+export async function listIncomingRequests(userId: string): Promise<UserConnectionRequest[]> {
+    const c = coll(db, `${USERS_COLLECTION}/${userId}/${REQUESTS_SUB}`);
+    const snap = await getDocs(c);
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as UserConnectionRequest[];
+}
+
+export async function sendConnectionRequest(fromUserId: string, toUserId: string): Promise<void> {
+    // Create/overwrite request document in recipient's requests subcollection
+    await setDoc(doc(db, `${USERS_COLLECTION}/${toUserId}/${REQUESTS_SUB}`, fromUserId), {
+        requestedOn: serverTimestamp(),
+    });
+}
+
+export async function acceptConnectionRequest(userId: string, fromUserId: string): Promise<void> {
+    // Create reciprocal connection docs with known ids
+    const now = serverTimestamp();
+    await Promise.all([
+        setDoc(doc(db, `${USERS_COLLECTION}/${userId}/${CONNECTIONS_SUB}`, fromUserId), { connectedOn: now }),
+        setDoc(doc(db, `${USERS_COLLECTION}/${fromUserId}/${CONNECTIONS_SUB}`, userId), { connectedOn: now }),
+        deleteDoc(doc(db, `${USERS_COLLECTION}/${userId}/${REQUESTS_SUB}`, fromUserId)),
+    ]);
+}
+
+export async function denyConnectionRequest(userId: string, fromUserId: string): Promise<void> {
+    await deleteDoc(doc(db, `${USERS_COLLECTION}/${userId}/${REQUESTS_SUB}`, fromUserId));
+}
+
+export async function recommendConnections(userId: string, max: number = 5): Promise<string[]> {
+    // Simple mutuals-based recommendation: users most connected to your connections, excluding already-connected and self
+    const myConnections = await listConnections(userId);
+    const mySet = new Set(myConnections.map((c) => c.id));
+    mySet.add(userId);
+    const counts = new Map<string, number>();
+    await Promise.all(
+        myConnections.map(async (c) => {
+            const theirs = await listConnections(c.id);
+            for (const t of theirs) {
+                if (mySet.has(t.id)) continue;
+                counts.set(t.id, (counts.get(t.id) ?? 0) + 1);
+            }
+        })
+    );
+    return Array.from(counts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, max)
+        .map(([id]) => id);
+}
+
+export async function hasOutgoingRequest(fromUserId: string, toUserId: string): Promise<boolean> {
+    const ref = doc(db, `${USERS_COLLECTION}/${toUserId}/${REQUESTS_SUB}`, fromUserId);
+    const snap = await getDoc(ref);
+    return snap.exists();
 }

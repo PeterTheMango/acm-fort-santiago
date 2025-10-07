@@ -4,7 +4,7 @@ import { ProfileHeader } from "@/components/profile/profile-header"
 import { ProfileSection } from "@/components/profile/profile-section"
 import { AchievementCard, type Achievement } from "@/components/profile/achievement-card"
 import { AwardCard, type Award } from "@/components/profile/award-card"
-import { getCurrentUser, listUserAchievements, listUserAwards, getOrCreateUser } from "@/lib/firebase/user-manager"
+import { getCurrentUser, listUserAchievements, listUserAwards, getOrCreateUser, listConnections, getUserById } from "@/lib/firebase/user-manager"
 import { auth } from "@clerk/nextjs/server"
 
 /**
@@ -78,10 +78,12 @@ export default async function Page() {
   // Get or create user in Firebase (since they're authenticated with Clerk)
   const user = await getOrCreateUser(userId)
 
-  const [userAchievements, userAwards] = await Promise.all([
+  const [userAchievements, userAwards, connections] = await Promise.all([
     listUserAchievements(user.id),
-    listUserAwards(user.id)
+    listUserAwards(user.id),
+    listConnections(user.id, 5)
   ])
+  const connectionUsers = await Promise.all(connections.map(async c => ({ id: c.id, u: await getUserById(c.id) })))
   
   const data = getOwnerProfileFromUser(user, userAchievements, userAwards)
 
@@ -98,6 +100,7 @@ export default async function Page() {
         {/* Header Section */}
         <ProfileHeader
           isOwner
+          userId={user.id}
           fullName={data.fullName}
           avatarUrl={data.avatarUrl}
           level={data.level}
@@ -177,6 +180,28 @@ export default async function Page() {
               </TooltipProvider>
             )}
           </div>
+        </div>
+
+        {/* Connections Section */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold">Connections</h2>
+              <p className="text-sm text-muted-foreground">People you’re connected with.</p>
+            </div>
+            <a href="/connections" className="text-sm text-primary hover:underline">View Connections</a>
+          </div>
+          {connectionUsers.length === 0 ? (
+            <div className="text-sm text-muted-foreground">No connections yet</div>
+          ) : (
+            <div className="flex flex-wrap gap-3">
+              {connectionUsers.map(({ id, u }) => (
+                <a key={id} href={`/profile/${id}`} className="rounded border px-3 py-1 text-sm hover:bg-accent">
+                  {(u && `${u.firstName} ${u.lastName}`.trim()) || id}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
