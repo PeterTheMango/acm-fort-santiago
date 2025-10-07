@@ -13,6 +13,13 @@ export type Award = {
   iconSrc?: string | null
 }
 
+/**
+ * Render a square award card that displays an icon (or placeholder) and a tooltip with the award's title, optional date, and optional issuer.
+ *
+ * @param className - Optional additional CSS classes to apply to the card container
+ * @param award - The award data to display (title, optional issuer, optional date, and optional iconSrc)
+ * @returns A JSX element representing the award card with tooltip
+ */
 export function AwardCard({
   className,
   award,
@@ -42,5 +49,4 @@ export function AwardCard({
     </Tooltip>
   )
 }
-
 

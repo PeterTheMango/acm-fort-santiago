@@ -1,5 +1,13 @@
 import { Skeleton } from "@/components/ui/skeleton"
 
+/**
+ * Renders a skeleton-based placeholder layout for a profile loading state.
+ *
+ * The layout mirrors a profile page: avatar and header area, a large content block,
+ * and two responsive two-column grids of content placeholders.
+ *
+ * @returns A React element representing the loading skeleton UI
+ */
 export default function Loading() {
   return (
     <div className="container mx-auto max-w-4xl py-6 space-y-6">
@@ -32,5 +40,4 @@ export default function Loading() {
     </div>
   )
 }
-
 

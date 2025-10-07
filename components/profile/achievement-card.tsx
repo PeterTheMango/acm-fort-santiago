@@ -13,6 +13,13 @@ export type Achievement = {
   iconSrc?: string | null
 }
 
+/**
+ * Render an achievement badge that shows an icon (or placeholder) and displays the achievement title, optional points, and optional description inside a tooltip.
+ *
+ * @param className - Optional additional CSS classes applied to the outer card.
+ * @param achievement - Achievement data to display (id, title, optional description, points, and iconSrc).
+ * @returns The achievement badge element with a tooltip containing the title, points, and description.
+ */
 export function AchievementCard({
   className,
   achievement,
@@ -42,5 +49,4 @@ export function AchievementCard({
     </Tooltip>
   )
 }
-
 

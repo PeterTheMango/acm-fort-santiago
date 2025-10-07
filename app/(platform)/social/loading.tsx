@@ -1,6 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
+/**
+ * Renders a skeleton loading UI for the social page with a header and a responsive grid of placeholder cards.
+ *
+ * The grid contains eight cards; each card includes a title placeholder, an avatar placeholder, two metadata lines, and a trailing action placeholder.
+ *
+ * @returns A JSX element containing the skeleton loading layout
+ */
 export default function Loading() {
   return (
     <div className="mx-auto w-full max-w-7xl p-4 md:p-6 lg:p-8">
@@ -37,5 +44,4 @@ export default function Loading() {
     </div>
   );
 }
-
 

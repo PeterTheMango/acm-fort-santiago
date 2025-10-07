@@ -15,7 +15,19 @@ export type ProfileSectionProps = {
   emptyDescription?: string
 }
 
-export function ProfileSection({
+/**
+   * Render a profile section card with a header and either its children or an empty state.
+   *
+   * @param className - Optional additional class names applied to the outer section
+   * @param title - Title shown in the card header
+   * @param description - Optional description shown beneath the title in the header
+   * @param children - Content to render inside the card when not empty
+   * @param isEmpty - When `true`, displays the empty state instead of `children`
+   * @param emptyTitle - Title used in the empty state (defaults to "Nothing here yet")
+   * @param emptyDescription - Optional description used in the empty state
+   * @returns The rendered profile section element
+   */
+  export function ProfileSection({
   className,
   title,
   description,
@@ -51,5 +63,4 @@ export function ProfileSection({
     </section>
   )
 }
-
 

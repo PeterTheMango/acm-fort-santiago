@@ -5,7 +5,17 @@ import { ProfileSection } from "@/components/profile/profile-section"
 import { AchievementCard, type Achievement } from "@/components/profile/achievement-card"
 import { AwardCard, type Award } from "@/components/profile/award-card"
 
-// Temporary mocked data. Replace with real data when backend is available.
+/**
+ * Provide a temporary mocked owner profile used for development and UI layout.
+ *
+ * This mock is intended to be replaced by real backend data; it includes representative
+ * fields used by the profile page (display name, avatar URL, level, badges, bio,
+ * achievements, and awards).
+ *
+ * @returns An object with the owner's profile data: `fullName`, `avatarUrl`, `level`,
+ * `badges` (array of {id, label, iconSrc}), `bio`, `achievements` (array of `Achievement`),
+ * and `awards` (array of `Award`).
+ */
 function getOwnerProfileMock() {
   return {
     fullName: "Alex Student",
@@ -38,6 +48,13 @@ function getOwnerProfileMock() {
   }
 }
 
+/**
+ * Render the owner profile page with header, bio, achievements, and awards using mocked profile data.
+ *
+ * Uses a local mock for the owner profile; replace the mock with a real authenticated data fetch when integrating.
+ *
+ * @returns The profile page JSX element containing the profile header and sections for bio, achievements, and awards.
+ */
 export default async function Page() {
   // In real implementation, fetch the authenticated user profile here.
   const data = getOwnerProfileMock()

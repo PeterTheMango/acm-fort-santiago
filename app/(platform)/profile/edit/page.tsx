@@ -7,6 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 
+/**
+ * Renders an edit profile page with inputs for full name and bio and actions to save or cancel.
+ *
+ * The form prevents default submission and, when saved, navigates to "/profile" (API save is a TODO).
+ * The Cancel action navigates back in history.
+ *
+ * @returns The JSX element for the edit profile page UI.
+ */
 export default function EditProfilePage() {
   const router = useRouter()
   const [fullName, setFullName] = React.useState("Alex Student")
@@ -64,5 +72,4 @@ export default function EditProfilePage() {
     </div>
   )
 }
-
 

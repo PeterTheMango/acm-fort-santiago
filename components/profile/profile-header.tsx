@@ -24,6 +24,17 @@ export type ProfileHeaderProps = {
   badges?: (BadgeItem & { iconSrc?: string | null })[] | null
 }
 
+/**
+ * Render a user profile header with avatar, display name, level badge, optional edit control, and optional badges with tooltips.
+ *
+ * @param className - Additional class names to apply to the outer container
+ * @param isOwner - When true, shows an edit button that links to the profile edit page
+ * @param fullName - The user's full name shown as the primary heading; used to compute avatar fallback initials
+ * @param avatarUrl - Optional image URL for the avatar; when absent, initials are shown
+ * @param level - Optional user level displayed on the avatar; defaults to 1 when not provided
+ * @param badges - Optional list of badges to render; each badge will show an icon (if `iconSrc` provided) and a tooltip with its label
+ * @returns The rendered profile header element
+ */
 export function ProfileHeader({
   className,
   isOwner,
@@ -95,5 +106,4 @@ export function ProfileHeader({
     </div>
   )
 }
-
 
