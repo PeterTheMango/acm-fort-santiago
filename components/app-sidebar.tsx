@@ -5,9 +5,12 @@ import {
   LayoutDashboard,
   BookOpen,
   Calendar,
-  GalleryVerticalEnd,
+  Trophy,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 import { NavUser } from "@/components/nav-user";
 import {
@@ -45,19 +48,37 @@ const data = {
       url: "/events",
       icon: Calendar,
     },
+    {
+      title: "Leaderboards",
+      url: "/leaderboards",
+      icon: Trophy,
+    },
+    {
+      title: "Social",
+      url: "/social",
+      icon: Users,
+    },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <GalleryVerticalEnd className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden">
+                  <Image
+                    src="/logo.png"
+                    alt="ACM Fort Santiago"
+                    width={32}
+                    height={32}
+                    className="object-contain"
+                  />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-medium">ACM Fort Santiago</span>
@@ -73,7 +94,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             {data.menuItems.map((item) => (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild tooltip={item.title}>
+                <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url}>
                   <Link href={item.url}>
                     <item.icon />
                     <span>{item.title}</span>
