@@ -35,9 +35,14 @@ type RecommendationSection = {
  * @returns The initials in uppercase formed from the first character of the first and last name parts; for a single-part name returns one initial, and for an empty or whitespace-only string returns an empty string
  */
 function getInitials(name: string) {
-  const parts = name.trim().split(" ");
-  const first = parts[0]?.[0] ?? "";
-  const last = parts[parts.length - 1]?.[0] ?? "";
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length === 0) return "";
+  if (parts.length === 1) return parts[0]!.slice(0, 1).toUpperCase();
+  const first = parts[0]!.slice(0, 1);
+  const last = parts[parts.length - 1]!.slice(0, 1);
   return (first + last).toUpperCase();
 }
 
