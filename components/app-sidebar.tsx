@@ -6,8 +6,11 @@ import {
   BookOpen,
   Calendar,
   GalleryVerticalEnd,
+  Trophy,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { NavUser } from "@/components/nav-user";
 import {
@@ -45,12 +48,24 @@ const data = {
       url: "/events",
       icon: Calendar,
     },
+    {
+      title: "Leaderboards",
+      url: "/leaderboards",
+      icon: Trophy,
+    },
+    {
+      title: "Social",
+      url: "/social",
+      icon: Users,
+    },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -73,7 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             {data.menuItems.map((item) => (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild tooltip={item.title}>
+                <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url}>
                   <Link href={item.url}>
                     <item.icon />
                     <span>{item.title}</span>
