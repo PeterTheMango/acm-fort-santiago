@@ -266,7 +266,7 @@ export default function LeaderboardPage() {
                       Victories
                     </th>
                     <th className="text-left py-4 px-4 text-sm font-medium text-muted-foreground">
-                      Best Win (mins)
+                      Best Win (mm:ss)
                     </th>
                     <th className="text-left py-4 px-4 text-sm font-medium text-muted-foreground">
                       Points
