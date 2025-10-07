@@ -16,11 +16,10 @@ import {
 } from "@/components/ui/sidebar";
 
 /**
- * Platform layout component with sidebar and breadcrumb navigation.
+ * Layout component that provides a sidebar and breadcrumb header and renders the given main content.
  *
- * @param props - Component props
- * @param props.children - Child components to render in the main content area
- * @returns The React element representing the platform layout
+ * @param children - Content to display in the main content area of the layout
+ * @returns A React element containing the platform layout with sidebar and header
  */
 export default function PlatformLayout({
   children,

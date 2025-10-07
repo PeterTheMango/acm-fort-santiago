@@ -54,6 +54,14 @@ const data = {
   ],
 };
 
+/**
+ * Renders the application's left navigation sidebar with brand, menu items, and user area.
+ *
+ * The sidebar is collapsible in icon mode and includes a header with the brand/logo, a content area that maps configured menu items (each showing an image and title) and highlights the item whose URL matches the current pathname, a footer that displays the user panel, and a sidebar rail. All props are forwarded to the underlying Sidebar component.
+ *
+ * @param props - Props forwarded to the underlying Sidebar component.
+ * @returns The Sidebar React element with navigation, header, footer, and rail.
+ */
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
 
