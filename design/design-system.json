@@ -1,0 +1,194 @@
+{
+  "meta": {
+    "name": "Design system for student chapter for ACM",
+    "theme_source": "globals.css",
+    "mode_support": ["light", "dark"],
+    "font_stack": {
+      "sans": "Inter, sans-serif",
+      "serif": "Source Serif 4, serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "border_radius": {
+      "sm": "calc(var(--radius) - 4px)",
+      "md": "calc(var(--radius) - 2px)",
+      "lg": "var(--radius)",
+      "xl": "calc(var(--radius) + 4px)"
+    }
+  },
+
+  "color_system": {
+    "background": "var(--background)",
+    "foreground": "var(--foreground)",
+    "card": "var(--card)",
+    "card_foreground": "var(--card-foreground)",
+    "accent": "var(--accent)",
+    "accent_foreground": "var(--accent-foreground)",
+    "primary": "var(--primary)",
+    "primary_foreground": "var(--primary-foreground)",
+    "muted": "var(--muted)",
+    "muted_foreground": "var(--muted-foreground)",
+    "border": "var(--border)",
+    "ring": "var(--ring)",
+    "sidebar": {
+      "base": "var(--sidebar)",
+      "foreground": "var(--sidebar-foreground)",
+      "primary": "var(--sidebar-primary)",
+      "primary_foreground": "var(--sidebar-primary-foreground)",
+      "accent": "var(--sidebar-accent)",
+      "accent_foreground": "var(--sidebar-accent-foreground)",
+      "border": "var(--sidebar-border)"
+    }
+  },
+
+  "layout": {
+    "sidebar": {
+      "width": "80px",
+      "background": "var(--sidebar)",
+      "padding": "1rem",
+      "border_right": "1px solid var(--sidebar-border)",
+      "active_indicator": {
+        "width": "4px",
+        "radius": "var(--radius-sm)",
+        "color": "var(--sidebar-primary)"
+      }
+    },
+    "content_wrapper": {
+      "padding": "2rem",
+      "background": "var(--background)",
+      "gap": "1.5rem"
+    },
+    "card_grid": {
+      "columns": 3,
+      "gap": "1.25rem",
+      "align": "start"
+    }
+  },
+
+  "component_styles": {
+    "leaderboard_header": {
+      "layout": "flex",
+      "justify": "space-between",
+      "align": "center",
+      "font_weight": "600",
+      "font_size": "1.25rem",
+      "color": "var(--foreground)"
+    },
+    "stats_summary_card": {
+      "background": "var(--card)",
+      "color": "var(--card-foreground)",
+      "radius": "var(--radius-lg)",
+      "padding": "1.25rem",
+      "shadow": "var(--shadow-md)",
+      "display": "flex",
+      "flex_direction": "column",
+      "align": "center",
+      "gap": "0.5rem"
+    },
+    "leader_profile_card": {
+      "background": "var(--card)",
+      "border": "1px solid var(--border)",
+      "radius": "var(--radius-lg)",
+      "padding": "1.25rem",
+      "shadow": "var(--shadow-lg)",
+      "highlight_border": {
+        "enabled": true,
+        "color": "var(--primary)"
+      },
+      "avatar": {
+        "shape": "circle",
+        "size": "64px",
+        "border": "2px solid var(--accent)"
+      },
+      "username_style": {
+        "font_weight": "600",
+        "font_size": "1rem"
+      },
+      "metrics": {
+        "layout": "grid",
+        "columns": 3,
+        "font_size": "0.875rem",
+        "color": "var(--muted-foreground)"
+      },
+      "badge": {
+        "type": "medal",
+        "position": "top-right",
+        "size": "28px"
+      }
+    },
+    "countdown_timer": {
+      "background": "var(--secondary)",
+      "color": "var(--secondary-foreground)",
+      "radius": "var(--radius-lg)",
+      "padding": "1rem",
+      "font_weight": "500",
+      "timer_units": {
+        "display": "inline-flex",
+        "gap": "0.25rem",
+        "font_family": "var(--font-mono)"
+      }
+    },
+    "table_ranking": {
+      "background": "var(--card)",
+      "border_radius": "var(--radius-md)",
+      "header": {
+        "font_weight": "600",
+        "text_transform": "uppercase",
+        "color": "var(--muted-foreground)"
+      },
+      "row": {
+        "hover_bg": "var(--muted)",
+        "padding_y": "0.75rem",
+        "font_size": "0.875rem",
+        "divider_color": "var(--border)"
+      },
+      "highlight_row": {
+        "background": "var(--accent)",
+        "color": "var(--accent-foreground)"
+      }
+    }
+  },
+
+  "visual_language": {
+    "shadows": ["var(--shadow-sm)", "var(--shadow-md)", "var(--shadow-lg)"],
+    "spacing_scale": ["0.25rem", "0.5rem", "1rem", "1.5rem", "2rem"],
+    "iconography": {
+      "style": "flat",
+      "color_mode": "contextual",
+      "use_brand_colors": true
+    },
+    "typography": {
+      "heading": {
+        "font_family": "var(--font-sans)",
+        "font_weight": "600",
+        "line_height": "1.3"
+      },
+      "body": {
+        "font_family": "var(--font-sans)",
+        "font_weight": "400",
+        "line_height": "1.5"
+      },
+      "mono": {
+        "font_family": "var(--font-mono)",
+        "font_weight": "500"
+      }
+    }
+  },
+
+  "animations": {
+    "hover_scale": {
+      "type": "transform",
+      "scale": 1.03,
+      "transition": "all 0.2s ease"
+    },
+    "fade_in": {
+      "duration": "0.3s",
+      "timing": "ease-out"
+    },
+    "badge_pulse": {
+      "keyframes": "pulse",
+      "duration": "1s",
+      "iteration": "infinite",
+      "timing": "ease-in-out"
+    }
+  }
+}
