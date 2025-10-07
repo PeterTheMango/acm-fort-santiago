@@ -254,7 +254,7 @@ export default function LeaderboardPage() {
                       Rank
                     </th>
                     <th className="text-left py-4 px-4 text-sm font-medium text-muted-foreground">
-                      User name
+                      Username
                     </th>
                     <th className="text-left py-4 px-4 text-sm font-medium text-muted-foreground">
                       Match Wins
