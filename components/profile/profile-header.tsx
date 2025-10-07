@@ -76,11 +76,11 @@ export function ProfileHeader({
               ) : null}
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {(badges && badges.length > 0) ? (
-                badges.map((b) => (
-                  <TooltipProvider key={b.id}>
-                    <Tooltip>
+            <TooltipProvider>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {(badges && badges.length > 0) ? (
+                  badges.map((b) => (
+                    <Tooltip key={b.id}>
                       <TooltipTrigger asChild>
                         <div className="rounded-lg border p-2 bg-card hover:bg-accent/30 transition-colors">
                           {b.iconSrc ? (
@@ -94,12 +94,12 @@ export function ProfileHeader({
                         <div className="text-sm font-medium">{b.label}</div>
                       </TooltipContent>
                     </Tooltip>
-                  </TooltipProvider>
-                ))
-              ) : (
-                <span className="text-sm text-muted-foreground">No badges yet</span>
-              )}
-            </div>
+                  ))
+                ) : (
+                  <span className="text-sm text-muted-foreground">No badges yet</span>
+                )}
+              </div>
+            </TooltipProvider>
           </div>
         </div>
       </div>
