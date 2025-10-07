@@ -8,7 +8,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-import { Settings } from "lucide-react"
+import { Settings, Camera } from "lucide-react"
+import { uploadImage, deleteFileFromUrl } from "@/service/storage-service"
+import { useRouter } from "next/navigation"
 
 type BadgeItem = {
   id: string
@@ -18,6 +20,7 @@ type BadgeItem = {
 export type ProfileHeaderProps = {
   className?: string
   isOwner?: boolean
+  userId?: string
   fullName: string
   avatarUrl?: string | null
   level?: number | null
@@ -40,12 +43,14 @@ export type ProfileHeaderProps = {
 export function ProfileHeader({
   className,
   isOwner,
+  userId,
   fullName,
   avatarUrl,
   level,
   studentId,
   badges,
 }: ProfileHeaderProps) {
+  const router = useRouter()
   const initials = React.useMemo(() => {
     const parts = fullName.split(" ").filter(Boolean)
     const first = parts[0]?.[0] ?? "U"
@@ -64,6 +69,18 @@ export function ProfileHeader({
                 <Image src="/default_pfp.png" alt="Default Avatar" width={80} height={80} />
               </AvatarFallback>
             </Avatar>
+            {isOwner && userId ? <InlineAvatarUpload userId={userId} currentUrl={avatarUrl ?? undefined} onUpdated={async (url) => {
+              try {
+                await fetch("/api/users", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  cache: "no-store",
+                  body: JSON.stringify({ userId, profilePicture: url }),
+                })
+                router.refresh()
+              } catch {}
+            }} /> : null}
             <div className="absolute bottom-0 right-0 flex items-center justify-center">
               <Image
                 src="/level.png"
@@ -127,6 +144,44 @@ export function ProfileHeader({
         </div>
       </div>
     </div>
+  )
+}
+
+function InlineAvatarUpload({ userId, currentUrl, onUpdated }: { userId: string; currentUrl?: string; onUpdated: (url: string) => void }) {
+  const [busy, setBusy] = React.useState(false)
+  const [pct, setPct] = React.useState<number | null>(null)
+  const inputRef = React.useRef<HTMLInputElement | null>(null)
+  const onClick = () => inputRef.current?.click()
+  const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setBusy(true)
+    setPct(0)
+    try {
+      const path = `users/${userId}/avatar/${Date.now()}_${file.name}`
+      const url = await uploadImage(file, path, (p) => setPct(Math.round(p)))
+      if (currentUrl) {
+        try { await deleteFileFromUrl(currentUrl) } catch {}
+      }
+      onUpdated(url)
+    } finally {
+      setBusy(false)
+      setPct(null)
+      if (inputRef.current) inputRef.current.value = ""
+    }
+  }
+  return (
+    <>
+      <button type="button" onClick={onClick} disabled={busy} className="absolute -bottom-2 -left-2 rounded-full bg-primary text-primary-foreground p-2 shadow hover:opacity-90">
+        <Camera size={16} />
+      </button>
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onChange} />
+      {busy && (
+        <div className="absolute -bottom-2 left-8 text-xs bg-card/80 px-2 py-0.5 rounded">
+          {pct !== null ? `${pct}%` : "Uploading..."}
+        </div>
+      )}
+    </>
   )
 }
 
