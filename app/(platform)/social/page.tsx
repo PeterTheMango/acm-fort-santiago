@@ -151,9 +151,9 @@ function UserCard({ user }: { user: RecommendedUser }) {
         </div>
         <div className="flex items-center justify-between gap-3">
           <Button size="sm" variant="default">Connect</Button>
-          <Link href={`/profile/${user.id}`} aria-label={`View ${user.fullName}'s profile`}>
-            <Button variant="outline" size="sm">View Profile</Button>
-          </Link>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/profile/${user.id}`} aria-label={`View ${user.fullName}'s profile`}>View Profile</Link>
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -236,9 +236,11 @@ export default function SocialPage() {
           />
         </div>
         <div className="mt-3 flex items-center justify-end gap-2">
-          <div className="text-xs text-muted-foreground mr-auto">
-            Showing {start + 1}-{Math.min(end, filtered.length)} of {filtered.length}
-          </div>
+          {filtered.length > 0 ? (
+            <div className="text-xs text-muted-foreground mr-auto">
+              Showing {Math.max(0, start + 1)}-{Math.min(end, filtered.length)} of {filtered.length}
+            </div>
+          ) : null}
           <Button size="sm" variant="outline" onClick={goPrev} disabled={!canPrev}>
             Previous
           </Button>

@@ -8,7 +8,7 @@ import { useEffect } from "react";
  * @param error - The error being reported; may include an optional `digest` string for tracking.
  * @returns A React element that shows a brief error message and retry guidance.
  */
-export default function Error({ error }: { error: Error & { digest?: string } }) {
+export default function SocialError({ error }: { error: Error & { digest?: string } }) {
   useEffect(() => {
     // eslint-disable-next-line no-console
     console.error(error);

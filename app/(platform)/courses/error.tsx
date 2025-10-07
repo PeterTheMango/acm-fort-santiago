@@ -10,7 +10,7 @@ import { useEffect } from "react"
  * @param error - The error object to display/report; may include an optional `digest` string for reference.
  * @returns A React element showing a "Something went wrong" heading and a short helper message.
  */
-export default function Error({ error }: { error: Error & { digest?: string } }) {
+export default function CoursesError({ error }: { error: Error & { digest?: string } }) {
   useEffect(() => {
     // eslint-disable-next-line no-console
     console.error(error)
