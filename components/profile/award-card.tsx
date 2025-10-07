@@ -49,12 +49,16 @@ export function AwardCard({
           )}
         </button>
       </TooltipTrigger>
-      </TooltipTrigger>
       <TooltipContent>
         <div className="max-w-[220px]">
-          <div className="font-medium">{award.title}{award.date ? ` • ${award.date}` : ""}</div>
+          <div className="font-medium">
+            {award.title}
+            {award.date ? ` • ${award.date}` : ""}
+          </div>
           {award.issuer ? (
-            <p className="text-xs text-muted-foreground mt-1">Issued by {award.issuer}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Issued by {award.issuer}
+            </p>
           ) : null}
         </div>
       </TooltipContent>
