@@ -287,7 +287,7 @@ export default function PlatformPage() {
                     </div>
                   </div>
                   <Link
-                    href={`/event/${event.id}`}
+                    href={`/events/${event.id}`}
                     className="flex items-center gap-1 text-sm font-medium text-primary hover:underline whitespace-nowrap"
                   >
                     View Event
