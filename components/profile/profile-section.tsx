@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Empty } from "@/components/ui/empty"
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
@@ -34,7 +34,14 @@ export function ProfileSection({
         <CardContent>
           {isEmpty ? (
             <div className="rounded-md border py-8">
-              <Empty title={emptyTitle} description={emptyDescription} />
+              <Empty>
+                <EmptyHeader>
+                  <EmptyTitle>{emptyTitle}</EmptyTitle>
+                  {emptyDescription ? (
+                    <EmptyDescription>{emptyDescription}</EmptyDescription>
+                  ) : null}
+                </EmptyHeader>
+              </Empty>
             </div>
           ) : (
             children
@@ -42,6 +49,7 @@ export function ProfileSection({
         </CardContent>
       </Card>
     </section>
-  )}
+  )
+}
 
 

@@ -1,4 +1,5 @@
 import * as React from "react"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import { ProfileHeader } from "@/components/profile/profile-header"
 import { ProfileSection } from "@/components/profile/profile-section"
 import { AchievementCard, type Achievement } from "@/components/profile/achievement-card"
@@ -72,11 +73,13 @@ export default async function Page() {
         emptyTitle="No achievements yet"
         emptyDescription="Complete activities to unlock achievements."
       >
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {data.achievements.map((a) => (
-            <AchievementCard key={a.id} achievement={a} />
-          ))}
-        </div>
+        <TooltipProvider>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {data.achievements.map((a) => (
+              <AchievementCard key={a.id} achievement={a} />
+            ))}
+          </div>
+        </TooltipProvider>
       </ProfileSection>
 
       <ProfileSection
@@ -86,11 +89,13 @@ export default async function Page() {
         emptyTitle="No awards yet"
         emptyDescription="Earn recognition for your contributions."
       >
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {data.awards.map((w) => (
-            <AwardCard key={w.id} award={w} />
-          ))}
-        </div>
+        <TooltipProvider>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {data.awards.map((w) => (
+              <AwardCard key={w.id} award={w} />
+            ))}
+          </div>
+        </TooltipProvider>
       </ProfileSection>
     </div>
   )
