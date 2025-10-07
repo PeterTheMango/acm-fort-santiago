@@ -1,17 +1,21 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import Image from "next/image"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import Image from "next/image";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 export type Award = {
-  id: string
-  title: string
-  issuer?: string | null
-  date?: string | null
-  iconSrc?: string | null
-}
+  id: string;
+  title: string;
+  issuer?: string | null;
+  date?: string | null;
+  iconSrc?: string | null;
+};
 
 /**
  * Render a square award card that displays an icon (or placeholder) and a tooltip with the award's title, optional date, and optional issuer.
@@ -24,8 +28,8 @@ export function AwardCard({
   className,
   award,
 }: {
-  className?: string
-  award: Award
+  className?: string;
+  award: Award;
 }) {
   return (
     <Tooltip>
@@ -33,7 +37,7 @@ export function AwardCard({
         <button
           type="button"
           className={cn(
-            "rounded-lg border p-3 bg-card hover:bg-accent/30 transition-colors flex items-center justify-center",
+            "aspect-square rounded-lg bg-card hover:bg-accent/30 transition-colors flex items-center justify-center",
             className
           )}
         >
@@ -41,11 +45,12 @@ export function AwardCard({
             <Image
               src={award.iconSrc}
               alt={award.title}
-              width={48}
-              height={48}
+              width={120}
+              height={120}
+              className="w-full h-full object-contain"
             />
           ) : (
-            <div className="size-12 rounded-md bg-muted" />
+            <div className="w-full h-full rounded-md bg-muted" />
           )}
         </button>
       </TooltipTrigger>
@@ -63,6 +68,5 @@ export function AwardCard({
         </div>
       </TooltipContent>
     </Tooltip>
-  )
+  );
 }
-

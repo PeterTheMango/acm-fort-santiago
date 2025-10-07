@@ -1,7 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-import { Medal } from "lucide-react";
+import Image from "next/image";
 // Mock data - replace with actual data from your API
 const topPlayers = [
   {
@@ -179,7 +178,7 @@ export default function LeaderboardPage() {
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Medal className="w-5 h-5 text-yellow-500" />
+                  <Image src="/gold.png" alt="Gold Medal" width={32} height={32} />
                   <div className="text-sm text-muted-foreground">Highest Points Achieved</div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -201,7 +200,7 @@ export default function LeaderboardPage() {
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Medal className="w-5 h-5 text-gray-400" />
+                  <Image src="/gold.png" alt="Gold Medal" width={32} height={32} />
                   <div className="text-sm text-muted-foreground">Highest Experience Gained</div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -223,7 +222,7 @@ export default function LeaderboardPage() {
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Medal className="w-5 h-5 text-amber-700" />
+                  <Image src="/gold.png" alt="Gold Medal" width={32} height={32} />
                   <div className="text-sm text-muted-foreground">Highest Challenges Completed</div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -236,6 +235,91 @@ export default function LeaderboardPage() {
                     <div className="text-2xl font-bold">78</div>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Weekly and Daily Level Leaderboards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Weekly Level Leaderboard */}
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-xl font-bold mb-4">Weekly Level Leaderboard</h2>
+              <div className="space-y-3">
+                {allPlayers.slice(0, 5).map((player) => (
+                  <div
+                    key={player.rank}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex-shrink-0 w-8">
+                      {player.rank === 1 ? (
+                        <Image src="/gold.png" alt="Gold Medal" width={24} height={24} />
+                      ) : player.rank === 2 ? (
+                        <Image src="/silver.png" alt="Silver Medal" width={24} height={24} />
+                      ) : player.rank === 3 ? (
+                        <Image src="/bronze.png" alt="Bronze Medal" width={24} height={24} />
+                      ) : (
+                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-sm">
+                          {player.rank}
+                        </div>
+                      )}
+                    </div>
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={player.avatar} alt={player.name} />
+                      <AvatarFallback>{player.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{player.name}</div>
+                      <div className="text-sm text-muted-foreground">Level {player.victories}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold">{player.points.toLocaleString()}</div>
+                      <div className="text-xs text-muted-foreground">points</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Daily Level Leaderboard */}
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-xl font-bold mb-4">Daily Level Leaderboard</h2>
+              <div className="space-y-3">
+                {allPlayers.slice(0, 5).map((player) => (
+                  <div
+                    key={player.rank}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex-shrink-0 w-8">
+                      {player.rank === 1 ? (
+                        <Image src="/gold.png" alt="Gold Medal" width={24} height={24} />
+                      ) : player.rank === 2 ? (
+                        <Image src="/silver.png" alt="Silver Medal" width={24} height={24} />
+                      ) : player.rank === 3 ? (
+                        <Image src="/bronze.png" alt="Bronze Medal" width={24} height={24} />
+                      ) : (
+                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-sm">
+                          {player.rank}
+                        </div>
+                      )}
+                    </div>
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={player.avatar} alt={player.name} />
+                      <AvatarFallback>{player.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{player.name}</div>
+                      <div className="text-sm text-muted-foreground">Level {player.victories}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold">{player.points.toLocaleString()}</div>
+                      <div className="text-xs text-muted-foreground">points</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -279,16 +363,18 @@ export default function LeaderboardPage() {
                       className="border-b hover:bg-muted/50 transition-colors"
                     >
                       <td className="py-4 px-4">
-                        <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                          player.rank === 1
-                            ? "bg-gradient-to-br from-yellow-400 to-yellow-600 text-yellow-900 font-bold"
-                            : player.rank === 2
-                            ? "bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700 font-bold"
-                            : player.rank === 3
-                            ? "bg-gradient-to-br from-amber-600 to-amber-800 text-amber-100 font-bold"
-                            : "bg-muted"
-                        }`}>
-                          {player.rank}
+                        <div className="flex items-center justify-center w-8 h-8">
+                          {player.rank === 1 ? (
+                            <Image src="/gold.png" alt="Gold Medal" width={32} height={32} />
+                          ) : player.rank === 2 ? (
+                            <Image src="/silver.png" alt="Silver Medal" width={32} height={32} />
+                          ) : player.rank === 3 ? (
+                            <Image src="/bronze.png" alt="Bronze Medal" width={32} height={32} />
+                          ) : (
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted">
+                              {player.rank}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="py-4 px-4">
