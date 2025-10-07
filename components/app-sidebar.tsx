@@ -1,13 +1,6 @@
 "use client";
 
 import * as React from "react";
-import {
-  LayoutDashboard,
-  BookOpen,
-  Calendar,
-  Trophy,
-  Users,
-} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -36,53 +29,61 @@ const data = {
     {
       title: "Dashboard",
       url: "/",
-      icon: LayoutDashboard,
+      imageSrc: "/dashboard.png",
     },
     {
       title: "Courses",
       url: "/courses",
-      icon: BookOpen,
+      imageSrc: "/courses.png",
     },
     {
       title: "Upcoming Events",
       url: "/events",
-      icon: Calendar,
+      imageSrc: "/events.png",
     },
     {
       title: "Leaderboards",
       url: "/leaderboards",
-      icon: Trophy,
+      imageSrc: "/leaderboards.png",
     },
     {
       title: "Social",
       url: "/social",
-      icon: Users,
+      imageSrc: "/social.png",
     },
   ],
 };
 
+/**
+ * Renders the application's left navigation sidebar with brand, menu items, and user area.
+ *
+ * The sidebar is collapsible in icon mode and includes a header with the brand/logo, a content area that maps configured menu items (each showing an image and title) and highlights the item whose URL matches the current pathname, a footer that displays the user panel, and a sidebar rail. All props are forwarded to the underlying Sidebar component.
+ *
+ * @param props - Props forwarded to the underlying Sidebar component.
+ * @returns The Sidebar React element with navigation, header, footer, and rail.
+ */
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
 
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader className="py-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
+            <SidebarMenuButton size="lg" asChild className="h-16 py-3">
               <Link href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden">
-                  <Image
-                    src="/logo.png"
-                    alt="ACM Fort Santiago"
-                    width={32}
-                    height={32}
-                    className="object-contain"
-                  />
-                </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-medium">ACM Fort Santiago</span>
-                  <span className="text-xs">Learning Platform</span>
+                <Image
+                  src="/logo.png"
+                  alt="ACM Fort Santiago"
+                  width={56}
+                  height={56}
+                  className="object-contain shrink-0 rounded-lg"
+                />
+                <div className="flex flex-col gap-1 leading-none">
+                  <span className="font-semibold text-base">
+                    ACM Fort Santiago
+                  </span>
+                  <span className="text-sm opacity-80">Learning Platform</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -94,9 +95,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             {data.menuItems.map((item) => (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={item.title}
+                  isActive={pathname === item.url}
+                  className="h-12 py-3 text-base"
+                >
                   <Link href={item.url}>
-                    <item.icon />
+                    <Image
+                      src={item.imageSrc}
+                      alt={item.title}
+                      width={24}
+                      height={24}
+                      className="object-contain shrink-0"
+                    />
                     <span>{item.title}</span>
                   </Link>
                 </SidebarMenuButton>

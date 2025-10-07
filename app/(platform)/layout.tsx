@@ -16,11 +16,10 @@ import {
 } from "@/components/ui/sidebar";
 
 /**
- * Platform layout component with sidebar and breadcrumb navigation.
+ * Layout component that provides a sidebar and breadcrumb header and renders the given main content.
  *
- * @param props - Component props
- * @param props.children - Child components to render in the main content area
- * @returns The React element representing the platform layout
+ * @param children - Content to display in the main content area of the layout
+ * @returns A React element containing the platform layout with sidebar and header
  */
 export default function PlatformLayout({
   children,
@@ -33,8 +32,8 @@ export default function PlatformLayout({
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+            {/* <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" /> */}
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
