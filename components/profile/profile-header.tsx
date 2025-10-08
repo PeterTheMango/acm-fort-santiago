@@ -5,10 +5,8 @@ import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Image from "next/image"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-import { Settings, Camera } from "lucide-react"
+import { Camera } from "lucide-react"
 import { uploadImage, deleteFileFromUrl } from "@/service/storage-service"
 import { useRouter } from "next/navigation"
 
@@ -51,12 +49,6 @@ export function ProfileHeader({
   badges,
 }: ProfileHeaderProps) {
   const router = useRouter()
-  const initials = React.useMemo(() => {
-    const parts = fullName.split(" ").filter(Boolean)
-    const first = parts[0]?.[0] ?? "U"
-    const last = parts[parts.length - 1]?.[0] ?? "N"
-    return (first + last).toUpperCase()
-  }, [fullName])
 
   return (
     <div className={cn("flex flex-col gap-6", className)}>

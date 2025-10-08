@@ -1,16 +1,17 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const protectedRoutes = createRouteMatcher(["/(.*)", "/admin(.*)", "/api(.*)", "/profile(.*)"]);
+const protectedRoutes = createRouteMatcher([
+  "/(.*)",
+  "/admin(.*)",
+  "/api(.*)",
+  "/profile(.*)",
+]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (protectedRoutes(req)) await auth.protect();
-  
-  // Prefer session claims over network calls in middleware.
-  const { sessionClaims } = await auth();
-  const setupDone = Boolean(sessionClaims?.publicMetadata?.setupUser);
-  // Short-lived cookie set after profile save to bypass redirect immediately
-  const setupCookie = req.cookies.get("setup_user")?.value === "1";
+
+  const { userId } = await auth();
   const pathname = req.nextUrl.pathname;
 
   const allowWhileSettingUp =
@@ -23,13 +24,47 @@ export default clerkMiddleware(async (auth, req) => {
     pathname.startsWith("/sign-up") ||
     pathname.startsWith("/sign-out");
 
-  if (!setupDone && !setupCookie && !allowWhileSettingUp) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/profile/edit";
-    url.search = "";
-    return NextResponse.redirect(url);
+  // Check userSetup flag - first from cache cookie, then from database via API call
+  if (userId && !allowWhileSettingUp) {
+    // Check cache cookie first
+    const setupCookie = req.cookies.get("user_setup_complete")?.value;
+    if (setupCookie === "true") {
+      return; // User setup is complete, allow request
+    }
+
+    // If no cache, check database via API call
+    try {
+      const apiUrl = new URL("/api/users/me", req.url);
+      const response = await fetch(apiUrl.toString(), {
+        headers: {
+          Cookie: req.headers.get("cookie") || "",
+        },
+      });
+
+      if (response.ok) {
+        const user = await response.json();
+        if (!user.userSetup) {
+          const url = req.nextUrl.clone();
+          url.pathname = "/profile/edit";
+          url.search = "";
+          return NextResponse.redirect(url);
+        } else {
+          // User setup is complete, set cache cookie
+          const res = NextResponse.next();
+          res.cookies.set("user_setup_complete", "true", {
+            path: "/",
+            maxAge: 60 * 60 * 24 * 30, // 30 days
+            sameSite: "lax",
+            httpOnly: true,
+          });
+          return res;
+        }
+      }
+    } catch (error) {
+      console.error("Error checking user setup status:", error);
+      // On error, allow the request to proceed to avoid blocking users
+    }
   }
-  
 });
 
 export const config = {

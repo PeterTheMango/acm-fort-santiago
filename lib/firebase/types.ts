@@ -23,6 +23,9 @@ export interface User {
 	profilePicture: string;
 	biography: string;
 	displayedBadges: UserBadges[];
+	userSetup: boolean;
+	completedChallenges: number;
+	role?: "admin" | "user";
 	createdAt: Timestamp;
 	updatedAt: Timestamp;
 }
@@ -34,6 +37,8 @@ export interface CreateUserData {
 	profilePicture?: string;
 	biography?: string;
 	displayedBadges?: UserBadges[];
+	userSetup?: boolean;
+	completedChallenges?: number;
 }
 
 export interface UserConnections {
@@ -46,4 +51,20 @@ export interface UserConnectionRequest {
     requestedOn: Timestamp;
 }
 
+export interface FirestoreUserData {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    profilePicture?: string;
+    biography?: string;
+    userSetup?: boolean;
+    completedChallenges?: number;
+    role?: "admin" | "user";
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
+}
+
+export interface FirestoreDocData {
+    [key: string]: unknown;
+}
 

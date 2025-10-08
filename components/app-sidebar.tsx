@@ -17,15 +17,9 @@ import {
   SidebarMenuButton,
   SidebarGroup,
 } from "@/components/ui/sidebar";
+import { getCurrentUserData, type SerializableUser } from "@/actions/user-actions";
 
-// This is sample data.
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  menuItems: [
+const menuItems = [
     {
       title: "Dashboard",
       url: "/",
@@ -51,8 +45,7 @@ const data = {
       url: "/social",
       imageSrc: "/social.png",
     },
-  ],
-};
+  ];
 
 /**
  * Renders the application's left navigation sidebar with brand, menu items, and user area.
@@ -64,6 +57,15 @@ const data = {
  */
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+  const [userData, setUserData] = React.useState<SerializableUser | null>(null);
+
+  React.useEffect(() => {
+    async function loadUser() {
+      const data = await getCurrentUserData();
+      if (data) setUserData(data);
+    }
+    loadUser();
+  }, []);
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -93,7 +95,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {data.menuItems.map((item) => (
+            {menuItems.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   asChild
@@ -118,7 +120,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        {userData && <NavUser user={userData} />}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -12,7 +12,8 @@ export async function GET() {
 		// Get or create user in Firebase
 		const user = await getOrCreateUser(userId);
 		return NextResponse.json(user);
-	} catch (e) {
+	} catch (error) {
+		console.error("Failed to fetch current user:", error);
 		return NextResponse.json({ error: "Failed to fetch current user" }, { status: 500 });
 	}
 }

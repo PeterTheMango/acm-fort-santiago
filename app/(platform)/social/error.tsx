@@ -10,7 +10,6 @@ import { useEffect } from "react";
  */
 export default function SocialError({ error }: { error: Error & { digest?: string } }) {
   useEffect(() => {
-    // eslint-disable-next-line no-console
     console.error(error);
   }, [error]);
 

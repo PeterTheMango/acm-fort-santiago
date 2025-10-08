@@ -71,7 +71,7 @@ export default function EditProfilePage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [router])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()

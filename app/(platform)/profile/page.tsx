@@ -4,53 +4,9 @@ import { ProfileHeader } from "@/components/profile/profile-header"
 import { ProfileSection } from "@/components/profile/profile-section"
 import { AchievementCard, type Achievement } from "@/components/profile/achievement-card"
 import { AwardCard, type Award } from "@/components/profile/award-card"
-import { getCurrentUser, listUserAchievements, listUserAwards, getOrCreateUser, listConnections, getUserById } from "@/lib/firebase/user-manager"
+import { listUserAchievements, listUserAwards, getOrCreateUser, listConnections, getUserById } from "@/lib/firebase/user-manager"
 import { auth } from "@clerk/nextjs/server"
 
-/**
- * Provide a temporary mocked owner profile used for development and UI layout.
- *
- * This mock is intended to be replaced by real backend data; it includes representative
- * fields used by the profile page (display name, avatar URL, level, badges, bio,
- * achievements, and awards).
- *
- * @returns An object with the owner's profile data: `fullName`, `avatarUrl`, `level`,
- * `badges` (array of {id, label, iconSrc}), `bio`, `achievements` (array of `Achievement`),
- * and `awards` (array of `Award`).
- */
-function getOwnerProfileMock() {
-  return {
-    fullName: "Alex Student",
-    avatarUrl: undefined as string | undefined,
-    level: 7,
-    studentId: "2021-12345",
-    badges: [
-      { id: "b1", label: "ACM Member", iconSrc: "/badge.png" },
-      { id: "b2", label: "Hackathon", iconSrc: "/badge.png" },
-      { id: "b3", label: "Top Contributor", iconSrc: "/badge.png" },
-    ],
-    bio:
-      "I'm an active member of ACM UDST Student Chapter, passionate about web and systems programming.",
-    achievements: [
-      {
-        id: "a1",
-        title: "Completed 10 Challenges",
-        description: "Solved 10 weekly coding challenges.",
-        points: 100,
-        iconSrc: "/achievement.png",
-      },
-    ] as Achievement[],
-    awards: [
-      {
-        id: "w1",
-        title: "Member of the Month",
-        issuer: "ACM UDST",
-        date: "Sep 2025",
-        iconSrc: "/gold.png",
-      },
-    ] as Award[],
-  }
-}
 
 /**
  * Render the owner profile page with header, bio, achievements, and awards using mocked profile data.
@@ -128,7 +84,7 @@ export default async function Page() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-lg font-semibold">Achievements</h2>
-                <p className="text-sm text-muted-foreground">Milestones you've unlocked in the chapter.</p>
+                <p className="text-sm text-muted-foreground">Milestones you&apos;ve unlocked in the chapter.</p>
               </div>
               {data.achievements.length > 3 && (
                 <button className="text-sm text-primary hover:underline">
@@ -208,18 +164,32 @@ export default async function Page() {
   )
 }
 
+interface UserData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  profilePicture: string;
+  biography: string;
+  displayedBadges: Array<{ id: string; dateAwarded: unknown }>;
+}
+
+interface UserAchievementData {
+  id?: string;
+  dateAwarded?: { toDate?: () => Date };
+  [key: string]: unknown;
+}
+
+interface UserAwardData {
+  id?: string;
+  dateAwarded?: { toDate?: () => Date };
+  [key: string]: unknown;
+}
+
 function getOwnerProfileFromUser(
-  user: {
-    id: string
-    firstName: string
-    lastName: string
-    email: string
-    profilePicture: string
-    biography: string
-    displayedBadges: any[]
-  },
-  userAchievements: any[],
-  userAwards: any[]
+  user: UserData,
+  userAchievements: UserAchievementData[],
+  userAwards: UserAwardData[]
 ) {
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ") || "Unnamed User"
   

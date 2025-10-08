@@ -1,5 +1,4 @@
 import {
-	collection,
 	doc,
 	getDoc,
 	setDoc,
@@ -17,6 +16,8 @@ import type {
     UserBadges,
     UserConnections,
     UserConnectionRequest,
+    FirestoreUserData,
+    FirestoreDocData,
 } from "./types";
 
 const USERS_COLLECTION = "users";
@@ -33,7 +34,7 @@ export async function getUser(userId: string): Promise<User | null> {
 	const ref = doc(db, USERS_COLLECTION, userId);
 	const snap = await getDoc(ref);
 	if (!snap.exists()) return null;
-	const data = snap.data() as any;
+	const data = snap.data() as FirestoreUserData;
 	const [badges] = await Promise.all([
 		listUserBadges(userId),
 	]);
@@ -45,6 +46,9 @@ export async function getUser(userId: string): Promise<User | null> {
 		profilePicture: data.profilePicture ?? "",
 		biography: data.biography ?? "",
 		displayedBadges: badges,
+		userSetup: data.userSetup ?? false,
+		completedChallenges: data.completedChallenges ?? 0,
+		role: data.role ?? "user",
 		createdAt: (data.createdAt as Timestamp) ?? Timestamp.now(),
 		updatedAt: (data.updatedAt as Timestamp) ?? Timestamp.now(),
 	};
@@ -61,6 +65,8 @@ export async function createUser(
 		email: data.email ?? "",
 		profilePicture: data.profilePicture ?? "",
 		biography: data.biography ?? "",
+		userSetup: data.userSetup ?? false,
+		completedChallenges: data.completedChallenges ?? 0,
 		createdAt: now,
 		updatedAt: now,
 	};
@@ -81,6 +87,16 @@ export async function updateUser(
 	});
 }
 
+export async function incrementCompletedChallenges(userId: string): Promise<void> {
+	const user = await getUser(userId);
+	if (!user) throw new Error("User not found");
+
+	await updateDoc(doc(db, USERS_COLLECTION, userId), {
+		completedChallenges: (user.completedChallenges || 0) + 1,
+		updatedAt: serverTimestamp(),
+	});
+}
+
 export async function deleteUser(userId: string): Promise<void> {
 	await deleteDoc(doc(db, USERS_COLLECTION, userId));
 }
@@ -94,7 +110,7 @@ export function subscribeToUser(
 		ref,
 		(snap) => {
 			if (!snap.exists()) return callback(null);
-			const data = snap.data() as any;
+			const data = snap.data() as FirestoreUserData;
 			// Also fetch subcollections on change
 			listUserBadges(userId)
 				.then((badges) => {
@@ -106,6 +122,9 @@ export function subscribeToUser(
 						profilePicture: data.profilePicture ?? "",
 						biography: data.biography ?? "",
 						displayedBadges: badges,
+						userSetup: data.userSetup ?? false,
+						completedChallenges: data.completedChallenges ?? 0,
+						role: data.role ?? "user",
 						createdAt: (data.createdAt as Timestamp) ?? Timestamp.now(),
 						updatedAt: (data.updatedAt as Timestamp) ?? Timestamp.now(),
 					});
@@ -119,6 +138,9 @@ export function subscribeToUser(
 						profilePicture: data.profilePicture ?? "",
 						biography: data.biography ?? "",
 						displayedBadges: [],
+						userSetup: data.userSetup ?? false,
+						completedChallenges: data.completedChallenges ?? 0,
+						role: data.role ?? "user",
 						createdAt: (data.createdAt as Timestamp) ?? Timestamp.now(),
 						updatedAt: (data.updatedAt as Timestamp) ?? Timestamp.now(),
 					});
@@ -177,12 +199,12 @@ const REQUESTS_SUB = "connectionRequests";
 export async function listUserBadges(userId: string): Promise<UserBadges[]> {
 	const c = coll(db, `${USERS_COLLECTION}/${userId}/badges`);
 	const snap = await getDocs(c);
-	return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as UserBadges[];
+	return snap.docs.map((d) => ({ id: d.id, ...(d.data() as FirestoreDocData) })) as UserBadges[];
 }
 
 export async function addUserBadge(userId: string, badge: Omit<UserBadges, "id">): Promise<string> {
 	const c = coll(db, `${USERS_COLLECTION}/${userId}/badges`);
-	const ref = await addDoc(c, badge as any);
+	const ref = await addDoc(c, badge as FirestoreDocData);
 	return ref.id;
 }
 
@@ -193,12 +215,12 @@ export async function removeUserBadge(userId: string, badgeId: string): Promise<
 export async function listUserAwards(userId: string) {
 	const c = coll(db, `${USERS_COLLECTION}/${userId}/awards`);
 	const snap = await getDocs(c);
-	return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+	return snap.docs.map((d) => ({ id: d.id, ...(d.data() as FirestoreDocData) }));
 }
 
 export async function addUserAward(userId: string, award: { dateAwarded: Timestamp }) {
 	const c = coll(db, `${USERS_COLLECTION}/${userId}/awards`);
-	const ref = await addDoc(c, award as any);
+	const ref = await addDoc(c, award as FirestoreDocData);
 	return ref.id;
 }
 
@@ -209,12 +231,12 @@ export async function removeUserAward(userId: string, awardId: string) {
 export async function listUserAchievements(userId: string) {
 	const c = coll(db, `${USERS_COLLECTION}/${userId}/achievements`);
 	const snap = await getDocs(c);
-	return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+	return snap.docs.map((d) => ({ id: d.id, ...(d.data() as FirestoreDocData) }));
 }
 
 export async function addUserAchievement(userId: string, achievement: { dateAwarded: Timestamp }) {
 	const c = coll(db, `${USERS_COLLECTION}/${userId}/achievements`);
-	const ref = await addDoc(c, achievement as any);
+	const ref = await addDoc(c, achievement as FirestoreDocData);
 	return ref.id;
 }
 
@@ -330,7 +352,7 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
 export async function listConnections(userId: string, limit?: number): Promise<UserConnections[]> {
     const c = coll(db, `${USERS_COLLECTION}/${userId}/${CONNECTIONS_SUB}`);
     const snap = await getDocs(c);
-    const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as UserConnections[];
+    const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() as FirestoreDocData) })) as UserConnections[];
     return typeof limit === "number" ? items.slice(0, Math.max(0, limit)) : items;
 }
 
@@ -351,7 +373,7 @@ export async function removeConnection(a: string, b: string): Promise<void> {
 export async function listIncomingRequests(userId: string): Promise<UserConnectionRequest[]> {
     const c = coll(db, `${USERS_COLLECTION}/${userId}/${REQUESTS_SUB}`);
     const snap = await getDocs(c);
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as UserConnectionRequest[];
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as FirestoreDocData) })) as UserConnectionRequest[];
 }
 
 export async function sendConnectionRequest(fromUserId: string, toUserId: string): Promise<void> {
