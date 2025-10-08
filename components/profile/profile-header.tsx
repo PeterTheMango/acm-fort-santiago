@@ -163,7 +163,7 @@ function InlineAvatarUpload({ userId, currentUrl, onUpdated }: { userId: string;
       const path = `users/${userId}/avatar/${Date.now()}_${file.name}`
       const url = await uploadImage(file, path, (p) => setPct(Math.round(p)))
       if (currentUrl) {
-        try { await deleteFileFromUrl(currentUrl) } catch {}
+        try { await deleteFileFromUrl(currentUrl) } catch (err) { console.error("Failed to delete old avatar:", err); }
       }
       onUpdated(url)
     } finally {
