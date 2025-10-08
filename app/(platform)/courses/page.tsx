@@ -1,5 +1,7 @@
+import Link from "next/link"
 import { CourseCard } from "@/components/courses/course-card"
 import { browseCourses, yourCourses } from "@/lib/courses"
+import { Button } from "@/components/ui/button"
 
 /**
  * Render the Courses page with "Your Courses" and "Browse Courses" sections.
@@ -19,7 +21,7 @@ export default function CoursesPage() {
           Pick up where you left off.
         </p>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
-          {yourCourses.map((course) => (
+          {yourCourses.slice(0, 4).map((course) => (
             <CourseCard
               key={course.slug}
               mode="enrolled"
@@ -35,12 +37,19 @@ export default function CoursesPage() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold">Browse Courses</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Explore topics from development to AI and cybersecurity.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold">Browse Courses</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Explore topics from development to AI and cybersecurity.
+            </p>
+          </div>
+          <Button variant="outline" asChild>
+            <Link href="/courses/browse">View More Courses</Link>
+          </Button>
+        </div>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
-          {browseCourses.map((course) => (
+          {browseCourses.slice(0, 4).map((course) => (
             <CourseCard
               key={course.slug}
               mode="browse"

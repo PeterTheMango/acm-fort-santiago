@@ -20,6 +20,7 @@ import {
   getAllDailyTrivia,
   DailyTrivia,
   TriviaReward,
+  createPlatformAnnouncement,
 } from "@/handlers/admin-handler";
 
 export function DailyTriviaManager() {
@@ -102,6 +103,14 @@ export function DailyTriviaManager() {
 
       if (triviaId) {
         toast.success("Daily trivia created successfully!");
+
+        // Send platform alert for new tech trivia
+        await createPlatformAnnouncement({
+          message: "New tech trivia available! Go check it out and test your knowledge!",
+          type: "info",
+          createdBy: "admin",
+        });
+
         setIsDialogOpen(false);
         resetForm();
         loadTrivias();

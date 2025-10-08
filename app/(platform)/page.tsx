@@ -65,22 +65,26 @@ export default function PlatformPage() {
   // Streak state
   const [userStreak, setUserStreak] = useState<UserStreak | null>(null);
 
-  // Load active daily trivia
+  // Subscribe to active daily trivia for real-time updates
   useEffect(() => {
-    async function loadTrivia() {
-      if (!userId) return;
-      const trivia = await getActiveDailyTrivia();
-      if (trivia) {
-        const triviaWithId = trivia as WithId<DailyTrivia>;
+    if (!userId) return;
+    const unsubscribe = subscribe<DailyTrivia>("daily-trivia", async (trivias) => {
+      const activeTrivia = trivias.find((t) => t.status === "active");
+
+      if (activeTrivia) {
+        const triviaWithId = activeTrivia as WithId<DailyTrivia>;
         setDailyTrivia(triviaWithId);
         const triviaId = triviaWithId.id || triviaWithId.docId;
         if (triviaId) {
           const answered = await hasUserAnsweredTrivia(triviaId, userId);
           setHasAnswered(answered);
         }
+      } else {
+        setDailyTrivia(null);
       }
-    }
-    loadTrivia();
+    });
+
+    return () => unsubscribe();
   }, [userId]);
 
   // Subscribe to active quests with real-time updates
@@ -109,14 +113,18 @@ export default function PlatformPage() {
     return () => unsubscribe();
   }, [userId]);
 
-  // Load user streak
+  // Subscribe to user streak for real-time updates
   useEffect(() => {
-    async function loadStreak() {
-      if (!userId) return;
-      const streak = await getUserStreak(userId);
-      setUserStreak(streak);
-    }
-    loadStreak();
+    if (!userId) return;
+
+    const unsubscribe = subscribe<UserStreak>("user-streaks", (streaks) => {
+      const currentStreak = streaks.find(
+        (s) => (s.id || s.docId) === userId
+      );
+      setUserStreak(currentStreak || null);
+    });
+
+    return () => unsubscribe();
   }, [userId]);
 
   const handleSubmitAnswer = async () => {
