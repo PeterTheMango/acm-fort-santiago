@@ -112,7 +112,7 @@ export default function EditProfilePage() {
       const url = await uploadImage(file, path, (p) => setUploadProgress(Math.round(p)))
       // Optionally cleanup old image
       if (profilePicture) {
-        try { await deleteFileFromUrl(profilePicture) } catch {}
+        try { await deleteFileFromUrl(profilePicture) } catch (err) { console.error("Failed to delete old profile picture", err) }
       }
       setProfilePicture(url)
     } catch (err) {
