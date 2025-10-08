@@ -79,7 +79,9 @@ export function ProfileHeader({
                   body: JSON.stringify({ userId, profilePicture: url }),
                 })
                 router.refresh()
-              } catch {}
+              } catch (error) {
+                console.error("Failed to update profile picture:", error);
+              }
             }} /> : null}
             <div className="absolute bottom-0 right-0 flex items-center justify-center">
               <Image
