@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getOrCreateUser } from "@/lib/firebase/user-manager";
+import { getOrCreateUser } from "@/lib/firebase/user-manager";
 import { auth } from "@clerk/nextjs/server";
 
 export async function GET() {
