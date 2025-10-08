@@ -7,7 +7,8 @@ export default clerkMiddleware(async (auth, req) => {
   if (protectedRoutes(req)) await auth.protect();
   
   // Prefer session claims over network calls in middleware.
-  const setupDone = Boolean((auth as any)?.sessionClaims?.publicMetadata?.setupUser);
+  const { sessionClaims } = await auth();
+  const setupDone = Boolean(sessionClaims?.publicMetadata?.setupUser);
   // Short-lived cookie set after profile save to bypass redirect immediately
   const setupCookie = req.cookies.get("setup_user")?.value === "1";
   const pathname = req.nextUrl.pathname;
