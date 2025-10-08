@@ -4,6 +4,8 @@ import { ProfileHeader } from "@/components/profile/profile-header"
 import { ProfileSection } from "@/components/profile/profile-section"
 import { AchievementCard, type Achievement } from "@/components/profile/achievement-card"
 import { AwardCard, type Award } from "@/components/profile/award-card"
+import { getCurrentUser, listUserAchievements, listUserAwards, getOrCreateUser, listConnections, getUserById } from "@/lib/firebase/user-manager"
+import { auth } from "@clerk/nextjs/server"
 
 /**
  * Provide a temporary mocked owner profile used for development and UI layout.
@@ -58,8 +60,32 @@ function getOwnerProfileMock() {
  * @returns The profile page JSX element containing the profile header and sections for bio, achievements, and awards.
  */
 export default async function Page() {
-  // In real implementation, fetch the authenticated user profile here.
-  const data = getOwnerProfileMock()
+  // First check if user is authenticated with Clerk
+  const { userId } = await auth()
+  
+  if (!userId) {
+    // This shouldn't happen due to middleware, but just in case
+    return (
+      <div className="container mx-auto max-w-5xl py-8">
+        <div className="bg-card rounded-lg border shadow-sm p-6">
+          <h1 className="text-2xl font-bold mb-4">Please sign in</h1>
+          <p className="text-muted-foreground">You need to be signed in to view your profile.</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Get or create user in Firebase (since they're authenticated with Clerk)
+  const user = await getOrCreateUser(userId)
+
+  const [userAchievements, userAwards, connections] = await Promise.all([
+    listUserAchievements(user.id),
+    listUserAwards(user.id),
+    listConnections(user.id, 5)
+  ])
+  const connectionUsers = await Promise.all(connections.map(async c => ({ id: c.id, u: await getUserById(c.id) })))
+  
+  const data = getOwnerProfileFromUser(user, userAchievements, userAwards)
 
   const isEmptyBio = !data.bio
   const hasAchievements = data.achievements && data.achievements.length > 0
@@ -74,6 +100,7 @@ export default async function Page() {
         {/* Header Section */}
         <ProfileHeader
           isOwner
+          userId={user.id}
           fullName={data.fullName}
           avatarUrl={data.avatarUrl}
           level={data.level}
@@ -154,7 +181,81 @@ export default async function Page() {
             )}
           </div>
         </div>
+
+        {/* Connections Section */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold">Connections</h2>
+              <p className="text-sm text-muted-foreground">People you’re connected with.</p>
+            </div>
+            <a href="/connections" className="text-sm text-primary hover:underline">View Connections</a>
+          </div>
+          {connectionUsers.length === 0 ? (
+            <div className="text-sm text-muted-foreground">No connections yet</div>
+          ) : (
+            <div className="flex flex-wrap gap-3">
+              {connectionUsers.map(({ id, u }) => (
+                <a key={id} href={`/profile/${id}`} className="rounded border px-3 py-1 text-sm hover:bg-accent">
+                  {(u && `${u.firstName} ${u.lastName}`.trim()) || id}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
+}
+
+function getOwnerProfileFromUser(
+  user: {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+    profilePicture: string
+    biography: string
+    displayedBadges: any[]
+  },
+  userAchievements: any[],
+  userAwards: any[]
+) {
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ") || "Unnamed User"
+  
+  // Convert user badges to the format expected by ProfileHeader
+  const badges = user.displayedBadges.map((badge, index) => ({
+    id: badge.id || `badge-${index}`,
+    label: `Badge ${index + 1}`, // You might want to fetch badge details from a badges collection
+    iconSrc: "/badge.png"
+  }))
+  
+  // Convert user achievements to the format expected by AchievementCard
+  const achievements: Achievement[] = userAchievements.map((achievement, index) => ({
+    id: achievement.id || `achievement-${index}`,
+    title: `Achievement ${index + 1}`, // You might want to fetch achievement details from an achievements collection
+    description: `Earned on ${achievement.dateAwarded?.toDate?.()?.toLocaleDateString() || 'Unknown date'}`,
+    points: 100,
+    iconSrc: "/achievement.png"
+  }))
+  
+  // Convert user awards to the format expected by AwardCard
+  const awards: Award[] = userAwards.map((award, index) => ({
+    id: award.id || `award-${index}`,
+    title: `Award ${index + 1}`, // You might want to fetch award details from an awards collection
+    issuer: "ACM UDST",
+    date: award.dateAwarded?.toDate?.()?.toLocaleDateString() || 'Unknown date',
+    iconSrc: "/gold.png"
+  }))
+  
+  return {
+    fullName,
+    avatarUrl: user.profilePicture || undefined,
+    level: 1, // You might want to calculate this based on achievements/points
+    studentId: user.email || undefined,
+    badges,
+    bio: user.biography || "No bio yet",
+    achievements,
+    awards
+  }
 }

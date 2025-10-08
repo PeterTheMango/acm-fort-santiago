@@ -1,9 +1,35 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
-const protectedRoutes = createRouteMatcher(["/(.*)", "/admin(.*)", "/api(.*)"]);
+const protectedRoutes = createRouteMatcher(["/(.*)", "/admin(.*)", "/api(.*)", "/profile(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (protectedRoutes(req)) await auth.protect();
+  
+  // Prefer session claims over network calls in middleware.
+  const { sessionClaims } = await auth();
+  const setupDone = Boolean(sessionClaims?.publicMetadata?.setupUser);
+  // Short-lived cookie set after profile save to bypass redirect immediately
+  const setupCookie = req.cookies.get("setup_user")?.value === "1";
+  const pathname = req.nextUrl.pathname;
+
+  const allowWhileSettingUp =
+    pathname.startsWith("/profile/edit") ||
+    // Allow viewing others' profiles even if setup incomplete
+    pathname.startsWith("/profile/") ||
+    pathname.startsWith("/api/users") ||
+    pathname.startsWith("/api/connections") ||
+    pathname.startsWith("/sign-in") ||
+    pathname.startsWith("/sign-up") ||
+    pathname.startsWith("/sign-out");
+
+  if (!setupDone && !setupCookie && !allowWhileSettingUp) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/profile/edit";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+  
 });
 
 export const config = {

@@ -303,3 +303,31 @@ export function subscribe<T>(
 export function asJsonSafe<T>(record: WithId<T>): any {
   return toPlain(record);
 }
+
+export async function queryOne<T>(
+  collectionPath: string,
+  filters: Array<ReturnType<typeof where>>,
+  options: Omit<ListOptions, "filters" | "pageSize"> = {}
+): Promise<WithId<T> | null> {
+  try {
+    const constraints: QueryConstraint[] = [...filters];
+
+    // optional ordering or other query options
+    if (options.orders) constraints.push(...options.orders);
+    // limit to 1 since we only want the first match
+    constraints.push(qLimit(1));
+
+    const cq = q(collection(db, collectionPath), ...constraints).withConverter(
+      makeConverter<T>()
+    );
+
+    const snap = await getDocs(cq);
+    if (snap.empty) return null;
+
+    return snap.docs[0].data();
+  } catch (e) {
+    throw new Error(
+      `queryOne(${collectionPath}) failed: ${(e as Error).message}`
+    );
+  }
+}

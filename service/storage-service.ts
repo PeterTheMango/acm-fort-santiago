@@ -6,8 +6,8 @@ import {
   getDownloadURL,
   deleteObject,
   updateMetadata,
-  UploadMetadata,
-  UploadTask,
+  type UploadMetadata,
+  type UploadTask,
 } from "firebase/storage";
 import { clientApp } from "../firebase";
 
@@ -39,7 +39,9 @@ export async function uploadFile(
           "state_changed",
           (snapshot) => {
             const progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              snapshot.totalBytes === 0
+                ? 100
+                : (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             onProgress(progress);
           },
           (error) => reject(error),
@@ -122,6 +124,10 @@ export async function uploadVideo(
   };
 
   return uploadFile(file, path, metadata, onProgress);
+}
+
+export function fileRef(path: string) {
+  return ref(storage, path);
 }
 
 /**

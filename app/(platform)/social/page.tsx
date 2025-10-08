@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { ConnectButton } from "@/components/social/connect-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -46,78 +47,8 @@ function getInitials(name: string) {
   return (first + last).toUpperCase();
 }
 
-const sections: RecommendationSection[] = [
-  {
-    id: "mutuals",
-    title: "Most Mutuals",
-    users: [
-      {
-        id: "aisha-al-khalifa",
-        fullName: "Aisha Al Khalifa",
-        avatarUrl: "/vercel.svg",
-        badges: ["Algorithms", "Frontend"],
-        mutualCount: 12,
-      },
-      {
-        id: "mohammed-salem",
-        fullName: "Mohammed Salem",
-        avatarUrl: "/next.svg",
-        badges: ["Data Science", "Python"],
-        mutualCount: 8,
-      },
-    ],
-  },
-  {
-    id: "skills",
-    title: "Same Skills",
-    users: [
-      {
-        id: "fatima-hassan",
-        fullName: "Fatima Hassan",
-        avatarUrl: "/globe.svg",
-        badges: ["React", "TypeScript", "UI/UX"],
-      },
-      {
-        id: "omar-ali",
-        fullName: "Omar Ali",
-        avatarUrl: "/window.svg",
-        badges: ["Go", "Distributed Systems"],
-      },
-    ],
-  },
-  {
-    id: "organizations",
-    title: "Organizations",
-    users: [
-      {
-        id: "noor-ahmed",
-        fullName: "Noor Ahmed",
-        badges: ["ACM UDST", "Hackathon Lead"],
-      },
-      {
-        id: "youssef-mansour",
-        fullName: "Youssef Mansour",
-        badges: ["ACM UDST", "Events"],
-      },
-    ],
-  },
-  {
-    id: "interests",
-    title: "Interests",
-    users: [
-      {
-        id: "sara-rahman",
-        fullName: "Sara Rahman",
-        badges: ["Competitive Programming", "Open Source"],
-      },
-      {
-        id: "ahmed-khan",
-        fullName: "Ahmed Khan",
-        badges: ["AI", "Robotics"],
-      },
-    ],
-  },
-];
+// Data is fetched from API; mock array removed
+const sections: RecommendationSection[] = [];
 
 /**
  * Render a recommendation card for a user, showing avatar (or initials), name, optional mutual count, badges, and action buttons.
@@ -155,7 +86,7 @@ function UserCard({ user }: { user: RecommendedUser }) {
           ))}
         </div>
         <div className="flex items-center justify-between gap-3">
-          <Button size="sm" variant="default">Connect</Button>
+          <ConnectButton targetUserId={user.id} />
           <Button asChild variant="outline" size="sm">
             <Link href={`/profile/${user.id}`} aria-label={`View ${user.fullName}'s profile`}>View Profile</Link>
           </Button>
@@ -176,26 +107,44 @@ export default function SocialPage() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 12; // 3 rows at lg (4 per row)
+  const [users, setUsers] = useState<RecommendedUser[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setPage(1);
   }, [query]);
 
-  const users = useMemo<RecommendedUser[]>(() => {
-    // Flatten sections into a single users array; if duplicates, keep the highest mutualCount
-    const map = new Map<string, RecommendedUser>();
-    sections.forEach((section) => {
-      section.users.forEach((u) => {
-        const existing = map.get(u.id);
-        if (!existing) {
-          map.set(u.id, { ...u });
-        } else {
-          const mutualCount = Math.max(existing.mutualCount ?? -1, u.mutualCount ?? -1);
-          map.set(u.id, { ...existing, ...u, mutualCount: mutualCount >= 0 ? mutualCount : undefined });
-        }
-      });
-    });
-    return Array.from(map.values());
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Get recommended user IDs (mutuals)
+        const recRes = await fetch("/api/connections/recommendations", { credentials: "include", cache: "no-store" });
+        if (!recRes.ok) throw new Error("Failed to load recommendations");
+        const ids = (await recRes.json()) as string[];
+        // Fetch user docs for each id
+        const usersData = await Promise.all(
+          ids.map(async (id) => {
+            const uRes = await fetch(`/api/users?userId=${encodeURIComponent(id)}`, { credentials: "include", cache: "no-store" });
+            if (!uRes.ok) return null;
+            const u = await uRes.json();
+            const fullName = [u.firstName, u.lastName].filter(Boolean).join(" ") || id;
+            const avatarUrl = u.profilePicture || undefined;
+            return { id, fullName, avatarUrl, badges: [] as string[] } as RecommendedUser;
+          })
+        );
+        const cleaned = usersData.filter(Boolean) as RecommendedUser[];
+        if (!cancelled) setUsers(cleaned);
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message || "Failed to load");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true };
   }, []);
 
   const filtered = useMemo(() => {
@@ -266,7 +215,11 @@ export default function SocialPage() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      ) : error ? (
+        <p className="text-sm text-red-600">{error}</p>
+      ) : filtered.length === 0 ? (
         <p className="text-sm text-muted-foreground">No users match your search.</p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
