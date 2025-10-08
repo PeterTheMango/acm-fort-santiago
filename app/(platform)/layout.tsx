@@ -36,11 +36,12 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
-import { subscribe } from "@/service/firebase-service";
+import { subscribe, WithId } from "@/service/firebase-service";
 import { Level } from "@/handlers/level-handler";
 import { Timestamp, where } from "firebase/firestore";
 import { toast } from "sonner";
 import { Confetti, type ConfettiRef } from "@/components/ui/confetti";
+import { PlatformAnnouncement } from "@/handlers/admin-handler";
 
 type Notification = {
   id: string;
@@ -129,6 +130,8 @@ export default function PlatformLayout({
   const previousLevelRef = useRef(1);
   const previousPointsRef = useRef(0);
   const previousExperienceRef = useRef(0);
+  const pageLoadTimeRef = useRef<Timestamp>(Timestamp.now());
+  const shownAnnouncementsRef = useRef<Set<string>>(new Set());
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -252,6 +255,39 @@ export default function PlatformLayout({
 
     return () => unsubscribe();
   }, [user?.id]);
+
+  // Subscribe to platform announcements
+  useEffect(() => {
+    const unsubscribe = subscribe<PlatformAnnouncement>(
+      "platform-announcements",
+      (items) => {
+        // Show new announcements created after page load that haven't been shown yet
+        items.forEach((announcement: WithId<PlatformAnnouncement>) => {
+          const announcementId = announcement.docId || announcement.id;
+          if (
+            announcementId &&
+            !shownAnnouncementsRef.current.has(announcementId) &&
+            announcement.createdAt instanceof Timestamp &&
+            announcement.createdAt.toMillis() > pageLoadTimeRef.current.toMillis()
+          ) {
+            // Show the toast based on type
+            if (announcement.type === "warning") {
+              toast.warning(announcement.message);
+            } else if (announcement.type === "success") {
+              toast.success(announcement.message);
+            } else {
+              toast.info(announcement.message);
+            }
+
+            // Mark this announcement as shown
+            shownAnnouncementsRef.current.add(announcementId);
+          }
+        });
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   const handleNotificationOpen = (open: boolean) => {
     setIsNotificationOpen(open);

@@ -2,12 +2,10 @@
 
 import Image from "next/image";
 import { useMemo } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -174,7 +172,7 @@ export default function EventsPage() {
         <h2 className="text-xl font-semibold mb-4">Your Events</h2>
         {yourEvents.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            You haven't registered for any events yet.
+            You haven&apos;t registered for any events yet.
           </p>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">

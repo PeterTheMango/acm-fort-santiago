@@ -14,7 +14,10 @@ export interface User {
   email: string;
   profilePicture: string;
   biography: string;
+  role: string;
   displayedBadges: UserBadges[];
+  userSetup: boolean;
+  completedChallenges: number;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

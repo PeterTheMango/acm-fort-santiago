@@ -67,7 +67,7 @@ export async function getOne<T>(
     const snap = await getDoc(
       docRef(db, collectionPath, id).withConverter(makeConverter<T>())
     );
-    return snap.exists() ? snap.data()! : null;
+    return snap.exists() ? (snap.data()! as WithId<T>) : null;
   } catch (e) {
     throw new Error(
       `getOne(${collectionPath}/${id}) failed: ${(e as Error).message}`
@@ -85,7 +85,7 @@ type ListOptions = {
 export async function list<T>(
   collectionPath: string,
   opts: ListOptions = {}
-): Promise<{ items: WithId<T>[]; last?: QueryDocumentSnapshot }> {
+): Promise<{ items: WithId<T>[]; last?: QueryDocumentSnapshot<unknown, DocumentData> }> {
   const constraints: QueryConstraint[] = [];
   if (opts.filters) constraints.push(...opts.filters);
   if (opts.orders) constraints.push(...opts.orders);
@@ -97,7 +97,7 @@ export async function list<T>(
       makeConverter<T>()
     );
     const snap = await getDocs(cq);
-    const items = snap.docs.map((d) => d.data());
+    const items = snap.docs.map((d) => d.data()) as WithId<T>[];
     const last = snap.docs.at(-1);
     return { items, last };
   } catch (e) {
@@ -131,10 +131,10 @@ export async function addOne<T>(
           `addOne: document already exists at ${collectionPath}/${id}`
         );
       }
-      await setDoc(ref, payload, { merge });
+      await setDoc(ref, payload as Record<string, unknown>, { merge });
       return id;
     }
-    const ref = await addDoc(collection(db, collectionPath), payload);
+    const ref = await addDoc(collection(db, collectionPath), payload as Record<string, unknown>);
     return ref.id;
   } catch (e) {
     throw new Error(
@@ -208,7 +208,7 @@ export async function queryOne<T>(
     const snap = await getDocs(cq);
     if (snap.empty) return null;
 
-    return snap.docs[0].data();
+    return snap.docs[0].data() as WithId<T>;
   } catch (e) {
     throw new Error(
       `queryOne(${collectionPath}) failed: ${(e as Error).message}`
@@ -297,9 +297,9 @@ export function subscribe<T>(
   const cq = q(collection(db, collectionPath), ...constraints).withConverter(
     makeConverter<T>()
   );
-  return onSnapshot(cq, (snap) => onChange(snap.docs.map((d) => d.data())));
+  return onSnapshot(cq, (snap) => onChange(snap.docs.map((d) => d.data()) as WithId<T>[]));
 }
 
-export function asJsonSafe<T>(record: WithId<T>): any {
+export function asJsonSafe<T>(record: WithId<T>): unknown {
   return toPlain(record);
 }

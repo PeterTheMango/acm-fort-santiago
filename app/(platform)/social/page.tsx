@@ -22,13 +22,6 @@ type RecommendedUser = {
   mutualCount?: number;
 };
 
-type RecommendationSection = {
-  id: string;
-  title: string;
-  subtitle?: string;
-  users: RecommendedUser[];
-};
-
 /**
  * Produce uppercase initials from a person's full name.
  *
@@ -46,9 +39,6 @@ function getInitials(name: string) {
   const last = parts[parts.length - 1]!.slice(0, 1);
   return (first + last).toUpperCase();
 }
-
-// Data is fetched from API; mock array removed
-const sections: RecommendationSection[] = [];
 
 /**
  * Render a recommendation card for a user, showing avatar (or initials), name, optional mutual count, badges, and action buttons.
@@ -138,8 +128,9 @@ export default function SocialPage() {
         );
         const cleaned = usersData.filter(Boolean) as RecommendedUser[];
         if (!cancelled) setUsers(cleaned);
-      } catch (e: any) {
-        if (!cancelled) setError(e?.message || "Failed to load");
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to load";
+        if (!cancelled) setError(errorMessage);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -174,10 +165,6 @@ export default function SocialPage() {
     if (canNext) setPage((p) => Math.min(totalPages, p + 1));
   }
 
-  function goTo(pageNum: number) {
-    const clamped = Math.min(Math.max(1, pageNum), totalPages);
-    setPage(clamped);
-  }
 
   return (
     <div className="mx-auto w-full max-w-7xl p-4 md:p-6 lg:p-8">

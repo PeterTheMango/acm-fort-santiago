@@ -1,6 +1,5 @@
 import { currentUser } from "@clerk/nextjs/server"
 import { listIncomingRequests, getUserById, acceptConnectionRequest, denyConnectionRequest } from "@/lib/firebase/user-manager"
-import Link from "next/link"
 
 export default async function Page() {
   const cu = await currentUser()

@@ -14,6 +14,14 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     hasOutgoingRequest(cu.id, targetId),
   ])
   const fullName = [target.firstName, target.lastName].filter(Boolean).join(" ") || "Unnamed User"
+
+  // Convert UserBadges to BadgeItem format
+  const badges = (target.displayedBadges || []).map((badge, index) => ({
+    id: badge.id || `badge-${index}`,
+    label: `Badge ${index + 1}`,
+    iconSrc: "/badge.png"
+  }))
+
   return (
     <div className="container mx-auto max-w-5xl py-8">
       <div className="bg-card rounded-lg border shadow-sm p-6 space-y-8">
@@ -22,7 +30,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           avatarUrl={target.profilePicture}
           level={1}
           studentId={target.email}
-          badges={target.displayedBadges || []}
+          badges={badges}
         />
         {cu.id !== targetId && (
           <ConnectButton targetUserId={targetId} initialConnected={connected} initialRequested={requested} />

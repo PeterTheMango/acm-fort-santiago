@@ -10,7 +10,6 @@ import { useEffect } from "react"
  */
 function ProfileError({ error }: { error: Error & { digest?: string } }) {
   useEffect(() => {
-    // eslint-disable-next-line no-console
     console.error(error)
   }, [error])
 

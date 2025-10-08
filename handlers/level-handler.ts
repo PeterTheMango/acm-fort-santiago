@@ -109,11 +109,13 @@ export async function getUserLevel(
  *
  * @param userId - The ID of the user to credit experience to
  * @param experience - The amount of experience to add (must be greater than 0)
+ * @param skipQuestTracking - If true, skips tracking quest contributions (used when distributing quest rewards)
  * @throws When `userId` is empty, when `experience` is not greater than 0, or when the persistence/update operations fail
  */
 export async function giveExperience(
   userId: string,
-  experience: number
+  experience: number,
+  skipQuestTracking: boolean = false
 ): Promise<void> {
   if (!userId) {
     throw new Error("userId is required");
@@ -125,6 +127,8 @@ export async function giveExperience(
 
   try {
     const existingRecord = await getOne<Level>("levels", userId);
+    let didLevelUp = false;
+    const oldLevel = existingRecord?.level || 0;
 
     if (existingRecord) {
       // Calculate total cumulative experience, then add the new experience
@@ -137,6 +141,8 @@ export async function giveExperience(
         calculateLevelAndExperience(newTotalExperience);
       const experienceToNextLevel = calculateExperienceToNextLevel(newLevel);
 
+      didLevelUp = newLevel > existingRecord.level;
+
       await patchOne<Level>("levels", userId, {
         experience: remainingExp,
         level: newLevel,
@@ -146,6 +152,8 @@ export async function giveExperience(
       const { level, experience: remainingExp } =
         calculateLevelAndExperience(experience);
       const experienceToNextLevel = calculateExperienceToNextLevel(level);
+
+      didLevelUp = level > 1;
 
       await addOne(
         "levels",
@@ -189,6 +197,20 @@ export async function giveExperience(
       userId,
       { merge: true }
     );
+
+    // Track quest contributions if not skipped
+    if (!skipQuestTracking) {
+      // Import trackQuestContribution at runtime to avoid circular dependency
+      const { trackQuestContribution } = await import("./admin-handler");
+
+      // Track gain_experience quest
+      await trackQuestContribution(userId, "gain_experience", experience);
+
+      // Track level_up quest if user leveled up
+      if (didLevelUp) {
+        await trackQuestContribution(userId, "level_up", 1);
+      }
+    }
   } catch (error) {
     throw new Error(
       `Failed to give experience: ${(error as Error).message}`

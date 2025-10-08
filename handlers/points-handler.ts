@@ -20,11 +20,13 @@ interface UserPointsHistory {
  *
  * @param userId - The identifier of the user to receive points
  * @param points - The number of points to add; must be greater than 0
+ * @param skipQuestTracking - If true, skips tracking quest contributions (used when distributing quest rewards)
  * @throws If `userId` is falsy, if `points` is not greater than 0, or if the underlying datastore operation fails
  */
 export async function givePoints(
   userId: string,
-  points: number
+  points: number,
+  skipQuestTracking: boolean = false
 ): Promise<void> {
   if (!userId) {
     throw new Error("userId is required");
@@ -47,6 +49,15 @@ export async function givePoints(
         userId,
         { merge: true }
       );
+    }
+
+    // Track quest contributions if not skipped
+    if (!skipQuestTracking) {
+      // Import trackQuestContribution at runtime to avoid circular dependency
+      const { trackQuestContribution } = await import("./admin-handler");
+
+      // Track gain_points quest
+      await trackQuestContribution(userId, "gain_points", points);
     }
   } catch (error) {
     throw new Error(`Failed to give points: ${(error as Error).message}`);
