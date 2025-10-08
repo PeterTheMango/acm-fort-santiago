@@ -123,8 +123,8 @@ export default function PlatformLayout({
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [points, setPoints] = useState(0);
   const [level, setLevel] = useState(1);
-  const [experience, setExperience] = useState(0);
-  const [experienceToNextLevel, setExperienceToNextLevel] = useState(100);
+  const [, setExperience] = useState(0);
+  const [, setExperienceToNextLevel] = useState(100);
   const confettiRef = useRef<ConfettiRef>(null);
   const previousLevelRef = useRef(1);
   const previousPointsRef = useRef(0);
@@ -141,14 +141,14 @@ export default function PlatformLayout({
       spread: 360,
       ticks: 60,
       zIndex: 0,
-      origin: { x: 0.95, y: 0.95 }
+      origin: { x: 0.95, y: 0.95 },
     };
 
     function randomInRange(min: number, max: number) {
       return Math.random() * (max - min) + min;
     }
 
-    const interval = setInterval(function() {
+    const interval = setInterval(function () {
       const timeLeft = animationEnd - Date.now();
 
       if (timeLeft <= 0) {
@@ -160,7 +160,7 @@ export default function PlatformLayout({
       confettiRef.current?.fire({
         ...defaults,
         particleCount,
-        origin: { x: randomInRange(0.85, 1), y: randomInRange(0.85, 1) }
+        origin: { x: randomInRange(0.85, 1), y: randomInRange(0.85, 1) },
       });
     }, 250);
   };
@@ -175,7 +175,10 @@ export default function PlatformLayout({
         const userPoints = items.find((item) => item.id === user.id);
         if (userPoints) {
           // Check if points increased
-          if (userPoints.points > previousPointsRef.current && previousPointsRef.current > 0) {
+          if (
+            userPoints.points > previousPointsRef.current &&
+            previousPointsRef.current > 0
+          ) {
             const pointsGained = userPoints.points - previousPointsRef.current;
             toast.success(`Gained ${pointsGained} points!`);
             fireConfetti();
@@ -210,11 +213,20 @@ export default function PlatformLayout({
             return total;
           };
 
-          const currentTotalExp = calculateTotalExp(userLevel.level, userLevel.experience);
-          const previousTotalExp = calculateTotalExp(previousLevelRef.current, previousExperienceRef.current);
+          const currentTotalExp = calculateTotalExp(
+            userLevel.level,
+            userLevel.experience
+          );
+          const previousTotalExp = calculateTotalExp(
+            previousLevelRef.current,
+            previousExperienceRef.current
+          );
 
           // Check if level increased
-          if (userLevel.level > previousLevelRef.current && previousLevelRef.current > 0) {
+          if (
+            userLevel.level > previousLevelRef.current &&
+            previousLevelRef.current > 0
+          ) {
             toast.success(`Level Up! You're now level ${userLevel.level}!`);
             fireConfetti();
           }
@@ -245,9 +257,7 @@ export default function PlatformLayout({
     setIsNotificationOpen(open);
     if (open && unreadCount > 0) {
       // Mark all notifications as read when popover opens
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, read: true }))
-      );
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     }
   };
   return (
@@ -255,164 +265,177 @@ export default function PlatformLayout({
       <SidebarProvider defaultOpen={true}>
         <AppSidebar />
         <SidebarInset className="flex flex-col h-screen overflow-hidden">
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center justify-between gap-2 px-4 w-full">
-            <SidebarTrigger className="md:hidden" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbPage className="text-muted-foreground">
-                    Dashboard
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Home</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-            <div className="flex items-center gap-2">
-              <TooltipProvider>
-                <Popover open={isNotificationOpen} onOpenChange={handleNotificationOpen}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <Image
-                            src={unreadCount > 0 ? "/notification_on.png" : "/notification_off.png"}
-                            alt="Notifications"
-                            width={24}
-                            height={24}
-                            className="object-contain"
-                          />
-                        </Button>
-                      </PopoverTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>View Notifications</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <PopoverContent align="end" className="w-80">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-sm">Notifications</h3>
-                        {unreadCount > 0 && (
-                          <span className="text-xs text-muted-foreground">
-                            {unreadCount} unread
-                          </span>
-                        )}
-                      </div>
-                      <Separator />
-                      <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                        {notifications.slice(0, visibleCount).length === 0 ? (
-                          <p className="text-sm text-muted-foreground text-center py-4">
-                            No notifications
-                          </p>
-                        ) : (
-                          notifications.slice(0, visibleCount).map((notification) => (
-                            <div
-                              key={notification.id}
-                              className="p-3 rounded-lg hover:bg-accent cursor-pointer transition-colors"
-                            >
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">
-                                    {notification.title}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground line-clamp-2">
-                                    {notification.message}
+          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+            <div className="flex items-center justify-between gap-2 px-4 w-full">
+              <SidebarTrigger className="md:hidden" />
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem className="hidden md:block">
+                    <BreadcrumbPage className="text-muted-foreground">
+                      Dashboard
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator className="hidden md:block" />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>Home</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+              <div className="flex items-center gap-2">
+                <TooltipProvider>
+                  <Popover
+                    open={isNotificationOpen}
+                    onOpenChange={handleNotificationOpen}
+                  >
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <Image
+                              src={
+                                unreadCount > 0
+                                  ? "/notification_on.png"
+                                  : "/notification_off.png"
+                              }
+                              alt="Notifications"
+                              width={24}
+                              height={24}
+                              className="object-contain"
+                            />
+                          </Button>
+                        </PopoverTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>View Notifications</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <PopoverContent align="end" className="w-80">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-sm">
+                            Notifications
+                          </h3>
+                          {unreadCount > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                              {unreadCount} unread
+                            </span>
+                          )}
+                        </div>
+                        <Separator />
+                        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                          {notifications.slice(0, visibleCount).length === 0 ? (
+                            <p className="text-sm text-muted-foreground text-center py-4">
+                              No notifications
+                            </p>
+                          ) : (
+                            notifications
+                              .slice(0, visibleCount)
+                              .map((notification) => (
+                                <div
+                                  key={notification.id}
+                                  className="p-3 rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                                >
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium truncate">
+                                        {notification.title}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground line-clamp-2">
+                                        {notification.message}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {notification.time}
                                   </p>
                                 </div>
-                              </div>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {notification.time}
-                              </p>
-                            </div>
-                          ))
+                              ))
+                          )}
+                        </div>
+                        {notifications.length > visibleCount && (
+                          <>
+                            <Separator />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full"
+                              onClick={() =>
+                                setVisibleCount((prev) => prev + 4)
+                              }
+                            >
+                              View More
+                            </Button>
+                          </>
                         )}
                       </div>
-                      {notifications.length > visibleCount && (
-                        <>
-                          <Separator />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full"
-                            onClick={() => setVisibleCount((prev) => prev + 4)}
-                          >
-                            View More
-                          </Button>
-                        </>
-                      )}
+                    </PopoverContent>
+                  </Popover>
+                </TooltipProvider>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="flex items-center gap-4 cursor-pointer rounded-full p-2 hover:bg-accent transition-colors">
+                      <div className="flex items-center gap-2">
+                        <Image
+                          src="/currency.png"
+                          alt="Currency"
+                          width={32}
+                          height={32}
+                          className="object-contain"
+                        />
+                        <span className="text-sm font-medium">{points}</span>
+                      </div>
+                      <div className="relative flex items-center justify-center">
+                        <Image
+                          src="/level.png"
+                          alt="Level"
+                          width={32}
+                          height={32}
+                          className="object-contain"
+                        />
+                        <span className="absolute text-sm font-bold text-white">
+                          {level}
+                        </span>
+                      </div>
                     </div>
-                  </PopoverContent>
-                </Popover>
-              </TooltipProvider>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-4 cursor-pointer rounded-full p-2 hover:bg-accent transition-colors">
-                  <div className="flex items-center gap-2">
-                    <Image
-                      src="/currency.png"
-                      alt="Currency"
-                      width={32}
-                      height={32}
-                      className="object-contain"
-                    />
-                    <span className="text-sm font-medium">{points}</span>
-                  </div>
-                  <div className="relative flex items-center justify-center">
-                    <Image
-                      src="/level.png"
-                      alt="Level"
-                      width={32}
-                      height={32}
-                      className="object-contain"
-                    />
-                    <span className="absolute text-sm font-bold text-white">
-                      {level}
-                    </span>
-                  </div>
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <Image
-                    src="/currency.png"
-                    alt="Currency"
-                    width={16}
-                    height={16}
-                    className="object-contain"
-                  />
-                  View Points
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Image
-                    src="/level.png"
-                    alt="Level"
-                    width={16}
-                    height={16}
-                    className="object-contain"
-                  />
-                  View Level
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
+                      <Image
+                        src="/currency.png"
+                        alt="Currency"
+                        width={16}
+                        height={16}
+                        className="object-contain"
+                      />
+                      View Points
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Image
+                        src="/level.png"
+                        alt="Level"
+                        width={16}
+                        height={16}
+                        className="object-contain"
+                      />
+                      View Level
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-          </div>
-        </header>
-        <Separator />
-        <ScrollArea className="flex-1 h-0">
-          <div className="flex flex-col gap-4 p-4">{children}</div>
-        </ScrollArea>
-      </SidebarInset>
-    </SidebarProvider>
-    <Confetti
-      ref={confettiRef}
-      className="fixed top-0 left-0 z-50 size-full pointer-events-none"
-      manualstart={true}
-      globalOptions={{ resize: true, useWorker: false }}
-    />
+          </header>
+          <Separator />
+          <ScrollArea className="flex-1 h-0">
+            <div className="flex flex-col gap-4 p-4">{children}</div>
+          </ScrollArea>
+        </SidebarInset>
+      </SidebarProvider>
+      <Confetti
+        ref={confettiRef}
+        className="fixed top-0 left-0 z-50 size-full pointer-events-none"
+        manualstart={true}
+        globalOptions={{ resize: true, useWorker: false }}
+      />
     </>
   );
 }
