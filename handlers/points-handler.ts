@@ -81,7 +81,7 @@ export async function getPoints(userId: string): Promise<number> {
     const record = await getOne<UserPoints>("points", userId);
     return record?.points ?? 0;
   } catch (error) {
-    throw new Error(`Failed to get points: ${(error as Error).message}`);
+    throw new Error(`Failed to get points for user ${userId}: ${(error as Error).message}`);
   }
 }
 
