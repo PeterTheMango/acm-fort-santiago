@@ -17,7 +17,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   return (
     <div className="container mx-auto max-w-5xl py-8">
       <div className="bg-card rounded-lg border shadow-sm p-6 space-y-8">
-        <ProfileHeader fullName={fullName} avatarUrl={target.profilePicture} level={1} studentId={target.email} badges={[]} />
+        <ProfileHeader
+          fullName={fullName}
+          avatarUrl={target.profilePicture}
+          level={1}
+          studentId={target.email}
+          badges={target.displayedBadges || []}
+        />
         {cu.id !== targetId && (
           <ConnectButton targetUserId={targetId} initialConnected={connected} initialRequested={requested} />
         )}
