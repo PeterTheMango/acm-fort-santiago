@@ -1,7 +1,6 @@
 import {
   Timestamp,
   orderBy,
-  where,
   getDocs,
   collection,
   deleteDoc,
@@ -20,19 +19,16 @@ export interface Level {
 }
 
 export interface LevelHistory {
-  id: string;
   experienceGained: number;
   date: Timestamp;
 }
 
 export interface WeeklyLevelHistory {
-  id: string;
   experienceGained: number;
   date: Timestamp;
 }
 
 export interface DailyLevelHistory {
-  id: string;
   experienceGained: number;
   date: Timestamp;
 }
@@ -42,18 +38,32 @@ function calculateExperienceToNextLevel(level: number): number {
   return 100 * level;
 }
 
-// Calculate level based on total experience
-function calculateLevel(totalExperience: number): number {
+// Calculate total cumulative experience from level and remaining experience
+function calculateTotalExperience(level: number, remainingExp: number): number {
+  let totalExp = remainingExp;
+  // Sum up all XP required for previous levels
+  for (let i = 1; i < level; i++) {
+    totalExp += calculateExperienceToNextLevel(i);
+  }
+  return totalExp;
+}
+
+// Calculate level and remaining experience based on total experience
+function calculateLevelAndExperience(totalExperience: number): {
+  level: number;
+  experience: number;
+} {
   let level = 1;
+  let remainingExp = totalExperience;
   let expRequired = calculateExperienceToNextLevel(level);
 
-  while (totalExperience >= expRequired) {
-    totalExperience -= expRequired;
+  while (remainingExp >= expRequired) {
+    remainingExp -= expRequired;
     level++;
     expRequired = calculateExperienceToNextLevel(level);
   }
 
-  return level;
+  return { level, experience: remainingExp };
 }
 
 export async function getUserLevel(
@@ -87,17 +97,24 @@ export async function giveExperience(
     const existingRecord = await getOne<Level>("levels", userId);
 
     if (existingRecord) {
-      const newExperience = existingRecord.experience + experience;
-      const newLevel = calculateLevel(newExperience);
+      // Calculate total cumulative experience, then add the new experience
+      const currentTotalExp = calculateTotalExperience(
+        existingRecord.level,
+        existingRecord.experience
+      );
+      const newTotalExperience = currentTotalExp + experience;
+      const { level: newLevel, experience: remainingExp } =
+        calculateLevelAndExperience(newTotalExperience);
       const experienceToNextLevel = calculateExperienceToNextLevel(newLevel);
 
       await patchOne<Level>("levels", userId, {
-        experience: newExperience,
+        experience: remainingExp,
         level: newLevel,
         experienceToNextLevel,
       });
     } else {
-      const level = 1;
+      const { level, experience: remainingExp } =
+        calculateLevelAndExperience(experience);
       const experienceToNextLevel = calculateExperienceToNextLevel(level);
 
       await addOne(
@@ -105,7 +122,7 @@ export async function giveExperience(
         {
           id: userId,
           level,
-          experience,
+          experience: remainingExp,
           experienceToNextLevel,
         } as Partial<Level>,
         userId,
@@ -114,23 +131,34 @@ export async function giveExperience(
     }
 
     // Add to history collections
-    await addOne("level-history", {
-      id: userId,
+    // level-history as subcollection under users/{userId}/level-history
+    await addOne(`users/${userId}/level-history`, {
       experienceGained: experience,
       date: Timestamp.now(),
     });
 
-    await addOne("weekly-level-history", {
-      id: userId,
-      experienceGained: experience,
-      date: Timestamp.now(),
-    });
+    // weekly and daily use userId as document ID - increment experience
+    const weeklyRecord = await getOne<WeeklyLevelHistory>("weekly-level-history", userId);
+    await addOne(
+      "weekly-level-history",
+      {
+        experienceGained: (weeklyRecord?.experienceGained ?? 0) + experience,
+        date: Timestamp.now(),
+      },
+      userId,
+      { merge: true }
+    );
 
-    await addOne("daily-level-history", {
-      id: userId,
-      experienceGained: experience,
-      date: Timestamp.now(),
-    });
+    const dailyRecord = await getOne<DailyLevelHistory>("daily-level-history", userId);
+    await addOne(
+      "daily-level-history",
+      {
+        experienceGained: (dailyRecord?.experienceGained ?? 0) + experience,
+        date: Timestamp.now(),
+      },
+      userId,
+      { merge: true }
+    );
   } catch (error) {
     throw new Error(
       `Failed to give experience: ${(error as Error).message}`
@@ -157,12 +185,18 @@ export async function removeExperience(
       throw new Error("User level record not found");
     }
 
-    const newExperience = Math.max(0, existingRecord.experience - experience);
-    const newLevel = calculateLevel(newExperience);
+    // Calculate total cumulative experience, then subtract
+    const currentTotalExp = calculateTotalExperience(
+      existingRecord.level,
+      existingRecord.experience
+    );
+    const newTotalExperience = Math.max(0, currentTotalExp - experience);
+    const { level: newLevel, experience: remainingExp } =
+      calculateLevelAndExperience(newTotalExperience);
     const experienceToNextLevel = calculateExperienceToNextLevel(newLevel);
 
     await patchOne<Level>("levels", userId, {
-      experience: newExperience,
+      experience: remainingExp,
       level: newLevel,
       experienceToNextLevel,
     });
@@ -175,18 +209,14 @@ export async function removeExperience(
 
 export async function getWeeklyLevelHistory(
   userId: string
-): Promise<WeeklyLevelHistory[] | undefined> {
+): Promise<WeeklyLevelHistory | undefined> {
   if (!userId) {
     throw new Error("userId is required");
   }
 
   try {
-    const { items } = await list<WeeklyLevelHistory>("weekly-level-history", {
-      filters: [where("id", "==", userId)],
-      orders: [orderBy("date", "desc")],
-    });
-
-    return items.length > 0 ? items : undefined;
+    const record = await getOne<WeeklyLevelHistory>("weekly-level-history", userId);
+    return record ?? undefined;
   } catch (error) {
     throw new Error(
       `Failed to get weekly level history: ${(error as Error).message}`
@@ -196,18 +226,14 @@ export async function getWeeklyLevelHistory(
 
 export async function getDailyLevelHistory(
   userId: string
-): Promise<DailyLevelHistory[] | undefined> {
+): Promise<DailyLevelHistory | undefined> {
   if (!userId) {
     throw new Error("userId is required");
   }
 
   try {
-    const { items } = await list<DailyLevelHistory>("daily-level-history", {
-      filters: [where("id", "==", userId)],
-      orders: [orderBy("date", "desc")],
-    });
-
-    return items.length > 0 ? items : undefined;
+    const record = await getOne<DailyLevelHistory>("daily-level-history", userId);
+    return record ?? undefined;
   } catch (error) {
     throw new Error(
       `Failed to get daily level history: ${(error as Error).message}`
@@ -242,8 +268,7 @@ export async function getUserLevelHistory(
   }
 
   try {
-    const { items } = await list<LevelHistory>("level-history", {
-      filters: [where("id", "==", userId)],
+    const { items } = await list<LevelHistory>(`users/${userId}/level-history`, {
       orders: [orderBy("date", "desc")],
     });
 
