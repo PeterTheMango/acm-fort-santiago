@@ -3,8 +3,8 @@ import {
   orderBy,
   getDocs,
   collection,
-  deleteDoc,
   doc,
+  writeBatch,
 } from "firebase/firestore";
 import { getOne, addOne, patchOne, list } from "../service/firebase-service";
 import { db } from "../firebase";
@@ -283,10 +283,23 @@ export async function getUserLevelHistory(
 export async function resetWeeklyLevels(): Promise<void> {
   try {
     const snapshot = await getDocs(collection(db, "weekly-level-history"));
-    const deletePromises = snapshot.docs.map((document) =>
-      deleteDoc(doc(db, "weekly-level-history", document.id))
-    );
-    await Promise.all(deletePromises);
+
+    // Firestore batches can handle up to 500 operations
+    const batchSize = 500;
+    const batches = [];
+
+    for (let i = 0; i < snapshot.docs.length; i += batchSize) {
+      const batch = writeBatch(db);
+      const batchDocs = snapshot.docs.slice(i, i + batchSize);
+
+      batchDocs.forEach((document) => {
+        batch.delete(doc(db, "weekly-level-history", document.id));
+      });
+
+      batches.push(batch.commit());
+    }
+
+    await Promise.all(batches);
   } catch (error) {
     throw new Error(
       `Failed to reset weekly levels: ${(error as Error).message}`
@@ -297,10 +310,23 @@ export async function resetWeeklyLevels(): Promise<void> {
 export async function resetDailyLevels(): Promise<void> {
   try {
     const snapshot = await getDocs(collection(db, "daily-level-history"));
-    const deletePromises = snapshot.docs.map((document) =>
-      deleteDoc(doc(db, "daily-level-history", document.id))
-    );
-    await Promise.all(deletePromises);
+
+    // Firestore batches can handle up to 500 operations
+    const batchSize = 500;
+    const batches = [];
+
+    for (let i = 0; i < snapshot.docs.length; i += batchSize) {
+      const batch = writeBatch(db);
+      const batchDocs = snapshot.docs.slice(i, i + batchSize);
+
+      batchDocs.forEach((document) => {
+        batch.delete(doc(db, "daily-level-history", document.id));
+      });
+
+      batches.push(batch.commit());
+    }
+
+    await Promise.all(batches);
   } catch (error) {
     throw new Error(
       `Failed to reset daily levels: ${(error as Error).message}`
