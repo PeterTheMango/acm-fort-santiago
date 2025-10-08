@@ -132,7 +132,7 @@ export function subscribeToUser(
 }
 
 export async function getOrCreateUser(userId?: string): Promise<User> {
-	const clerk = await currentUser().catch(() => null as any);
+	const clerk = await currentUser().catch(() => null);
 	const id = userId ?? (clerk?.id || generateUserId());
 	const existing = await getUser(id);
 	if (existing) {
