@@ -161,6 +161,11 @@ export async function patchOne<T extends object>(
   }
 }
 
+/**
+ * Deletes the document at the specified collection path and document id.
+ *
+ * @throws Error if the delete operation fails; the error message includes the `collectionPath/id` and the underlying error message.
+ */
 export async function removeOne(
   collectionPath: string,
   id: string
@@ -174,7 +179,51 @@ export async function removeOne(
   }
 }
 
-// Flexible query helper (equality, ranges, etc.)
+/**
+ * Retrieve the first document in a collection that matches the provided where filters.
+ *
+ * @param collectionPath - Path to the Firestore collection
+ * @param filters - Array of `where` query constraints to filter results
+ * @param options - Optional query options (e.g., `orders`) that modify sorting or other constraints
+ * @returns The first matching document data (including `docId`) as `WithId<T>`, or `null` if no document matches
+ * @throws Error if the query fails (error message includes the collection path)
+ */
+export async function queryOne<T>(
+  collectionPath: string,
+  filters: Array<ReturnType<typeof where>>,
+  options: Omit<ListOptions, "filters" | "pageSize"> = {}
+): Promise<WithId<T> | null> {
+  try {
+    const constraints: QueryConstraint[] = [...filters];
+
+    // optional ordering or other query options
+    if (options.orders) constraints.push(...options.orders);
+    // limit to 1 since we only want the first match
+    constraints.push(qLimit(1));
+
+    const cq = q(collection(db, collectionPath), ...constraints).withConverter(
+      makeConverter<T>()
+    );
+
+    const snap = await getDocs(cq);
+    if (snap.empty) return null;
+
+    return snap.docs[0].data();
+  } catch (e) {
+    throw new Error(
+      `queryOne(${collectionPath}) failed: ${(e as Error).message}`
+    );
+  }
+}
+
+/**
+ * Retrieves documents from a collection that match the given Firestore query filters.
+ *
+ * @param collectionPath - Path to the Firestore collection
+ * @param filters - Array of Firestore `where` constraints to apply to the query
+ * @param options - Optional query modifiers (e.g., ordering, pageSize, pagination cursor)
+ * @returns An object with `items` — an array of matching documents (each includes `docId` and its data) — and `last` — the last query snapshot for pagination, if available
+ */
 export async function queryMany<T>(
   collectionPath: string,
   filters: Array<ReturnType<typeof where>>,

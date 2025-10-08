@@ -34,7 +34,13 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useUser } from "@clerk/nextjs";
+import { subscribe } from "@/service/firebase-service";
+import { Level } from "@/handlers/level-handler";
+import { Timestamp, where } from "firebase/firestore";
+import { toast } from "sonner";
+import { Confetti, type ConfettiRef } from "@/components/ui/confetti";
 
 type Notification = {
   id: string;
@@ -88,16 +94,152 @@ const mockNotifications: Notification[] = [
  * @param children - Content to display in the main content area of the layout
  * @returns A React element containing the platform layout with sidebar and header
  */
+interface UserPoints {
+  id: string;
+  points: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/**
+ * Provides the main application layout with sidebar, header controls, and content area.
+ *
+ * Renders a persistent sidebar and header that include notification, points, and level controls;
+ * manages local notification state and subscribes to realtime user points and level updates
+ * (showing toasts and firing confetti on gains or level-ups). Opening the notification popover
+ * marks notifications as read.
+ *
+ * @param children - Content to render in the layout's main scrollable area
+ * @returns The platform layout element that wraps the provided `children`
+ */
 export default function PlatformLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { user } = useUser();
   const [notifications, setNotifications] = useState(mockNotifications);
   const [visibleCount, setVisibleCount] = useState(4);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [points, setPoints] = useState(0);
+  const [level, setLevel] = useState(1);
+  const [experience, setExperience] = useState(0);
+  const [experienceToNextLevel, setExperienceToNextLevel] = useState(100);
+  const confettiRef = useRef<ConfettiRef>(null);
+  const previousLevelRef = useRef(1);
+  const previousPointsRef = useRef(0);
+  const previousExperienceRef = useRef(0);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const fireConfetti = () => {
+    // Fire multiple bursts with delays to ensure visibility
+    const duration = 1.5 * 1000; // 1.5 seconds
+    const animationEnd = Date.now() + duration;
+    const defaults = {
+      startVelocity: 30,
+      spread: 360,
+      ticks: 60,
+      zIndex: 0,
+      origin: { x: 0.95, y: 0.95 }
+    };
+
+    function randomInRange(min: number, max: number) {
+      return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(function() {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+
+      confettiRef.current?.fire({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.85, 1), y: randomInRange(0.85, 1) }
+      });
+    }, 250);
+  };
+
+  // Subscribe to realtime points updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const unsubscribe = subscribe<UserPoints>(
+      "points",
+      (items) => {
+        const userPoints = items.find((item) => item.id === user.id);
+        if (userPoints) {
+          // Check if points increased
+          if (userPoints.points > previousPointsRef.current && previousPointsRef.current > 0) {
+            const pointsGained = userPoints.points - previousPointsRef.current;
+            toast.success(`Gained ${pointsGained} points!`);
+            fireConfetti();
+          }
+          previousPointsRef.current = userPoints.points;
+          setPoints(userPoints.points);
+        }
+      },
+      {
+        filters: [where("id", "==", user.id)],
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user?.id]);
+
+  // Subscribe to realtime level updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const unsubscribe = subscribe<Level>(
+      "levels",
+      (items) => {
+        const userLevel = items.find((item) => item.id === user.id);
+        if (userLevel) {
+          // Calculate total experience to detect experience gains even across level ups
+          const calculateTotalExp = (lvl: number, exp: number) => {
+            let total = exp;
+            for (let i = 1; i < lvl; i++) {
+              total += 100 * i; // 100 XP per level
+            }
+            return total;
+          };
+
+          const currentTotalExp = calculateTotalExp(userLevel.level, userLevel.experience);
+          const previousTotalExp = calculateTotalExp(previousLevelRef.current, previousExperienceRef.current);
+
+          // Check if level increased
+          if (userLevel.level > previousLevelRef.current && previousLevelRef.current > 0) {
+            toast.success(`Level Up! You're now level ${userLevel.level}!`);
+            fireConfetti();
+          }
+          // Check if experience increased (but don't show if we just leveled up)
+          else if (currentTotalExp > previousTotalExp && previousTotalExp > 0) {
+            const expGained = currentTotalExp - previousTotalExp;
+            toast.success(`Gained ${expGained} experience!`);
+            fireConfetti();
+          }
+
+          previousLevelRef.current = userLevel.level;
+          previousExperienceRef.current = userLevel.experience;
+
+          setLevel(userLevel.level);
+          setExperience(userLevel.experience);
+          setExperienceToNextLevel(userLevel.experienceToNextLevel);
+        }
+      },
+      {
+        filters: [where("id", "==", user.id)],
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user?.id]);
 
   const handleNotificationOpen = (open: boolean) => {
     setIsNotificationOpen(open);
@@ -109,9 +251,10 @@ export default function PlatformLayout({
     }
   };
   return (
-    <SidebarProvider defaultOpen={true}>
-      <AppSidebar />
-      <SidebarInset className="flex flex-col h-screen overflow-hidden">
+    <>
+      <SidebarProvider defaultOpen={true}>
+        <AppSidebar />
+        <SidebarInset className="flex flex-col h-screen overflow-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center justify-between gap-2 px-4 w-full">
             <SidebarTrigger className="md:hidden" />
@@ -216,7 +359,7 @@ export default function PlatformLayout({
                       height={32}
                       className="object-contain"
                     />
-                    <span className="text-sm font-medium">0</span>
+                    <span className="text-sm font-medium">{points}</span>
                   </div>
                   <div className="relative flex items-center justify-center">
                     <Image
@@ -227,7 +370,7 @@ export default function PlatformLayout({
                       className="object-contain"
                     />
                     <span className="absolute text-sm font-bold text-white">
-                      1
+                      {level}
                     </span>
                   </div>
                 </div>
@@ -264,5 +407,12 @@ export default function PlatformLayout({
         </ScrollArea>
       </SidebarInset>
     </SidebarProvider>
+    <Confetti
+      ref={confettiRef}
+      className="fixed top-0 left-0 z-50 size-full pointer-events-none"
+      manualstart={true}
+      globalOptions={{ resize: true, useWorker: false }}
+    />
+    </>
   );
 }

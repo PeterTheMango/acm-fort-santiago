@@ -13,6 +13,14 @@ import { clientApp } from "../firebase";
 
 const storage = getStorage(clientApp);
 
+/**
+ * Uploads a File or Blob to Firebase Storage at the specified path.
+ *
+ * If an `onProgress` callback is provided, a resumable upload is used and progress updates are reported.
+ *
+ * @param onProgress - Optional callback invoked with upload progress as a percentage (0 to 100)
+ * @returns The download URL of the uploaded file
+ */
 export async function uploadFile(
   file: File | Blob,
   path: string,
@@ -51,7 +59,16 @@ export async function uploadFile(
   }
 }
 
-// Upload an image (with automatic webp conversion if needed)
+/**
+ * Uploads an image to storage and returns its download URL.
+ *
+ * The upload uses the file's MIME type for metadata or defaults to `image/webp` when absent.
+ *
+ * @param file - Image data as a File or Blob
+ * @param path - Destination storage path (relative to the storage bucket)
+ * @param onProgress - Optional callback invoked with upload progress as a percentage (0–100)
+ * @returns The download URL of the uploaded image
+ */
 export async function uploadImage(
   file: File | Blob,
   path: string,
@@ -64,7 +81,14 @@ export async function uploadImage(
   return uploadFile(file, path, metadata, onProgress);
 }
 
-// Upload a document
+/**
+ * Uploads a document file to Firebase Storage and returns its download URL.
+ *
+ * @param file - The document `File` or `Blob` to upload.
+ * @param path - Destination storage path (including any desired folders and filename).
+ * @param onProgress - Optional callback invoked with upload progress as a percentage (0–100).
+ * @returns The download URL of the uploaded file.
+ */
 export async function uploadDocument(
   file: File | Blob,
   path: string,
@@ -77,7 +101,16 @@ export async function uploadDocument(
   return uploadFile(file, path, metadata, onProgress);
 }
 
-// Upload a video
+/**
+ * Uploads a video file to the specified storage path.
+ *
+ * Sets the upload metadata contentType from `file.type` or uses `"video/mp4"` if `file.type` is empty.
+ *
+ * @param file - The video file or blob to upload
+ * @param path - Destination storage path (e.g., `videos/user123/clip.mp4`)
+ * @param onProgress - Optional callback invoked with upload progress as a percentage (0–100)
+ * @returns The download URL of the uploaded video
+ */
 export async function uploadVideo(
   file: File | Blob,
   path: string,
@@ -90,11 +123,37 @@ export async function uploadVideo(
   return uploadFile(file, path, metadata, onProgress);
 }
 
-export async function getFileURL(path: string): Promise<string> {
-  const storageRef = ref(storage, path);
-  return getDownloadURL(storageRef);
+export function fileRef(path: string) {
+  return ref(storage, path);
 }
 
+/**
+ * Update metadata for a storage object at the specified path.
+ *
+ * @param path - The storage path of the object whose metadata will be updated (e.g., "folder/file.png").
+ * @param metadata - The metadata to apply to the storage object.
+ * @throws Error when the metadata update fails; message is prefixed with "Update metadata failed:" followed by the underlying error message.
+ */
+export async function updateFileMetadata(
+  path: string,
+  metadata: UploadMetadata
+): Promise<void> {
+  try {
+    const storageRef = ref(storage, path);
+    await updateMetadata(storageRef, metadata);
+  } catch (error) {
+    throw new Error(
+      `Update metadata failed: ${(error as Error).message}`
+    );
+  }
+}
+
+/**
+ * Deletes the object stored at the specified storage path.
+ *
+ * @param path - The storage path of the file to delete (for example, "folder/file.ext")
+ * @throws An Error when deletion fails; the error message is prefixed with "Delete failed:"
+ */
 export async function deleteFile(path: string): Promise<void> {
   try {
     const storageRef = ref(storage, path);
@@ -104,20 +163,14 @@ export async function deleteFile(path: string): Promise<void> {
   }
 }
 
-export async function updateFileMetadata(path: string, metadata: UploadMetadata): Promise<void> {
-  try {
-    const storageRef = ref(storage, path);
-    await updateMetadata(storageRef, metadata);
-  } catch (error) {
-    throw new Error(`Update metadata failed: ${(error as Error).message}`);
-  }
-}
-
-export function fileRef(path: string) {
-  return ref(storage, path);
-}
-
-// Delete a file using its download URL
+/**
+ * Deletes the storage object referenced by a Firebase Storage download URL.
+ *
+ * Attempts to extract the storage path from the provided `url` and delete that object.
+ *
+ * @param url - The Firebase Storage download URL of the file to delete. An empty or whitespace-only string is treated as already absent.
+ * @returns `true` if the file was deleted or the `url` was empty, `false` if the path could not be extracted or deletion failed.
+ */
 export async function deleteFileFromUrl(url: string): Promise<boolean> {
   try {
     if (!url || url.trim() === "") {
@@ -138,7 +191,13 @@ export async function deleteFileFromUrl(url: string): Promise<boolean> {
   }
 }
 
-// Get download URL for a file (alias with different casing)
+/**
+ * Retrieve the download URL for a storage object at the given path.
+ *
+ * @param path - The storage path to the file (relative to the bucket root)
+ * @returns The file's download URL
+ * @throws Error when the download URL cannot be retrieved; message is prefixed with "Get URL failed: "
+ */
 export async function getFileUrl(path: string): Promise<string> {
   try {
     const storageRef = ref(storage, path);
@@ -148,7 +207,12 @@ export async function getFileUrl(path: string): Promise<string> {
   }
 }
 
-// Extract file path from Firebase Storage URL
+/**
+ * Extracts the storage object path from a Firebase Storage download URL.
+ *
+ * @param url - The Firebase Storage download URL to parse
+ * @returns The decoded storage path (for example `folder/file.png`) if parsing succeeds, `null` otherwise
+ */
 export function extractFilePathFromUrl(url: string): string | null {
   try {
     const urlParts = url.split("/o/");
@@ -162,7 +226,14 @@ export function extractFilePathFromUrl(url: string): string | null {
   }
 }
 
-// Helper to create resumable upload task (for advanced use cases)
+/**
+ * Creates a resumable upload task for uploading a file to the given storage path.
+ *
+ * @param file - The File or Blob to upload.
+ * @param path - Destination storage path for the uploaded file.
+ * @param metadata - Optional upload metadata (for example `contentType` or custom metadata).
+ * @returns An UploadTask representing the resumable upload operation.
+ */
 export function createUploadTask(
   file: File | Blob,
   path: string,

@@ -1,19 +1,11 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-// Note: Route groups like (platform) do not appear in the URL.
-// Protect the actual URL paths instead.
-const protectedRoutes = createRouteMatcher([
-  "/profile(.*)",
-  "/admin(.*)",
-  "/api(.*)",
-]);
+const protectedRoutes = createRouteMatcher(["/(.*)", "/admin(.*)", "/api(.*)", "/profile(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (!protectedRoutes(req)) return;
-
-  await auth.protect();
-
+  if (protectedRoutes(req)) await auth.protect();
+  
   // Prefer session claims over network calls in middleware.
   const setupDone = Boolean((auth as any)?.sessionClaims?.publicMetadata?.setupUser);
   // Short-lived cookie set after profile save to bypass redirect immediately
@@ -36,6 +28,7 @@ export default clerkMiddleware(async (auth, req) => {
     url.search = "";
     return NextResponse.redirect(url);
   }
+  
 });
 
 export const config = {
