@@ -19,6 +19,7 @@ import {
   getAllCommunityQuests,
   CommunityQuest,
   QuestReward,
+  createPlatformAnnouncement,
 } from "@/handlers/admin-handler";
 import { Progress } from "@/components/ui/progress";
 
@@ -78,6 +79,14 @@ export function CommunityQuestsManager() {
 
       if (questId) {
         toast.success("Community quest created successfully!");
+
+        // Send platform alert for new community quest
+        await createPlatformAnnouncement({
+          message: "New community quest available! Join the community and complete challenges together!",
+          type: "info",
+          createdBy: "admin",
+        });
+
         setIsDialogOpen(false);
         resetForm();
         loadQuests();

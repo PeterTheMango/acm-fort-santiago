@@ -42,6 +42,8 @@ import { Timestamp, where } from "firebase/firestore";
 import { toast } from "sonner";
 import { Confetti, type ConfettiRef } from "@/components/ui/confetti";
 import { PlatformAnnouncement } from "@/handlers/admin-handler";
+import { onSnapshot, collection } from "firebase/firestore";
+import { db } from "@/firebase";
 
 type Notification = {
   id: string;
@@ -132,6 +134,7 @@ export default function PlatformLayout({
   const previousExperienceRef = useRef(0);
   const pageLoadTimeRef = useRef<Timestamp>(Timestamp.now());
   const shownAnnouncementsRef = useRef<Set<string>>(new Set());
+  const previousConnectionRequestsRef = useRef<Set<string>>(new Set());
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -288,6 +291,42 @@ export default function PlatformLayout({
 
     return () => unsubscribe();
   }, []);
+
+  // Subscribe to connection requests
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const requestsRef = collection(db, `users/${user.id}/connectionRequests`);
+
+    const unsubscribe = onSnapshot(requestsRef, async (snapshot) => {
+      snapshot.docChanges().forEach(async (change) => {
+        if (change.type === "added") {
+          const requestId = change.doc.id;
+
+          // Only show toast for new requests (not on initial load)
+          if (!previousConnectionRequestsRef.current.has(requestId)) {
+            // Fetch the requester's information using server action
+            try {
+              const { getUserDataById } = await import("@/actions/user-actions");
+              const requester = await getUserDataById(requestId);
+              const requesterName = requester
+                ? `${requester.firstName} ${requester.lastName}`.trim() || "Someone"
+                : "Someone";
+
+              toast.info(`${requesterName} sent you a connection request`);
+            } catch (error) {
+              console.error("Error fetching requester info:", error);
+              toast.info("You received a new connection request");
+            }
+          }
+
+          previousConnectionRequestsRef.current.add(requestId);
+        }
+      });
+    });
+
+    return () => unsubscribe();
+  }, [user?.id]);
 
   const handleNotificationOpen = (open: boolean) => {
     setIsNotificationOpen(open);

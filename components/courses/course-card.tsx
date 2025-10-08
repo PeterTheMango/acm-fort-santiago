@@ -48,8 +48,8 @@ export function CourseCard(props: Props) {
       : undefined;
 
   return (
-    <Card className="overflow-hidden">
-      <div className="aspect-[16/9] w-full bg-muted">
+    <Card className="flex h-full flex-col overflow-hidden p-0">
+      <div className="relative aspect-[16/9] w-full shrink-0 bg-muted">
         <Image
           src={bannerUrl}
           alt={title}
@@ -60,13 +60,13 @@ export function CourseCard(props: Props) {
           unoptimized={bannerUrl.includes("unsplash")}
         />
       </div>
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold leading-tight">
           {title}
         </CardTitle>
         <CardDescription>By {author}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-grow flex-col pb-6">
         {props.mode === "browse" && props.description ? (
           <p className="line-clamp-2 text-sm text-muted-foreground">
             {props.description}
@@ -92,7 +92,7 @@ export function CourseCard(props: Props) {
           </div>
         ) : null}
 
-        <div className="mt-4">
+        <div className="mt-auto pt-4">
           <Button asChild>
             <Link href={href}>{cta}</Link>
           </Button>

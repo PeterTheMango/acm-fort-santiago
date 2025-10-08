@@ -8,11 +8,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { Timestamp } from "firebase/firestore";
 
 export type Achievement = {
   id: string;
   title: string;
   description?: string | null;
+  dateAwarded: Timestamp | null;
   points?: number | null;
   iconSrc?: string | null;
 };

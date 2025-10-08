@@ -34,3 +34,25 @@ export async function getCurrentUserData(): Promise<SerializableUser | null> {
     return null;
   }
 }
+
+/**
+ * Server action to get a user by ID from Firebase
+ * @param userId - The ID of the user to fetch
+ * @returns User data serialized for client or null if not found
+ */
+export async function getUserDataById(userId: string): Promise<SerializableUser | null> {
+  try {
+    const userData = await getUserById(userId);
+    if (!userData) return null;
+
+    // Convert Timestamp objects to ISO strings for client components
+    return {
+      ...userData,
+      createdAt: userData.createdAt.toDate().toISOString(),
+      updatedAt: userData.updatedAt.toDate().toISOString(),
+    };
+  } catch (error) {
+    console.error("Error fetching user data by ID:", error);
+    return null;
+  }
+}

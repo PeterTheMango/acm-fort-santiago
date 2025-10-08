@@ -6,6 +6,8 @@ import { AchievementCard, type Achievement } from "@/components/profile/achievem
 import { AwardCard, type Award } from "@/components/profile/award-card"
 import { listUserAchievements, listUserAwards, getOrCreateUser, listConnections, getUserById } from "@/lib/firebase/user-manager"
 import { auth } from "@clerk/nextjs/server"
+import { getOne } from "@/service/firebase-service"
+import type { Level } from "@/handlers/level-handler"
 
 
 /**
@@ -34,14 +36,15 @@ export default async function Page() {
   // Get or create user in Firebase (since they're authenticated with Clerk)
   const user = await getOrCreateUser(userId)
 
-  const [userAchievements, userAwards, connections] = await Promise.all([
+  const [userAchievements, userAwards, connections, userLevel] = await Promise.all([
     listUserAchievements(user.id),
     listUserAwards(user.id),
-    listConnections(user.id, 5)
+    listConnections(user.id, 5),
+    getOne<Level>("levels", user.id)
   ])
   const connectionUsers = await Promise.all(connections.map(async c => ({ id: c.id, u: await getUserById(c.id) })))
   
-  const data = getOwnerProfileFromUser(user, userAchievements, userAwards)
+  const data = getOwnerProfileFromUser(user, userAchievements, userAwards, userLevel)
 
   const isEmptyBio = !data.bio
   const hasAchievements = data.achievements && data.achievements.length > 0
@@ -56,7 +59,6 @@ export default async function Page() {
         {/* Header Section */}
         <ProfileHeader
           isOwner
-          userId={user.id}
           fullName={data.fullName}
           avatarUrl={data.avatarUrl}
           level={data.level}
@@ -189,26 +191,28 @@ interface UserAwardData {
 function getOwnerProfileFromUser(
   user: UserData,
   userAchievements: UserAchievementData[],
-  userAwards: UserAwardData[]
+  userAwards: UserAwardData[],
+  userLevel?: Level | null
 ) {
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ") || "Unnamed User"
-  
+
   // Convert user badges to the format expected by ProfileHeader
   const badges = user.displayedBadges.map((badge, index) => ({
     id: badge.id || `badge-${index}`,
     label: `Badge ${index + 1}`, // You might want to fetch badge details from a badges collection
     iconSrc: "/badge.png"
   }))
-  
+
   // Convert user achievements to the format expected by AchievementCard
   const achievements: Achievement[] = userAchievements.map((achievement, index) => ({
     id: achievement.id || `achievement-${index}`,
     title: `Achievement ${index + 1}`, // You might want to fetch achievement details from an achievements collection
     description: `Earned on ${achievement.dateAwarded?.toDate?.()?.toLocaleDateString() || 'Unknown date'}`,
     points: 100,
-    iconSrc: "/achievement.png"
+    iconSrc: "/achievement.png",
+    dateAwarded: achievement.dateAwarded as unknown as import("firebase/firestore").Timestamp | null || null
   }))
-  
+
   // Convert user awards to the format expected by AwardCard
   const awards: Award[] = userAwards.map((award, index) => ({
     id: award.id || `award-${index}`,
@@ -217,11 +221,11 @@ function getOwnerProfileFromUser(
     date: award.dateAwarded?.toDate?.()?.toLocaleDateString() || 'Unknown date',
     iconSrc: "/gold.png"
   }))
-  
+
   return {
     fullName,
     avatarUrl: user.profilePicture || undefined,
-    level: 1, // You might want to calculate this based on achievements/points
+    level: userLevel?.level || 1,
     studentId: user.email || undefined,
     badges,
     bio: user.biography || "No bio yet",

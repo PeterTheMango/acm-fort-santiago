@@ -1,0 +1,20 @@
+{
+  "ide": {
+    "enabled": true
+  },
+  "mcpServers": {
+    "shadcn": {
+      "command": "npx",
+      "args": [
+        "shadcn@latest",
+        "mcp"
+      ]
+    },
+    "browser-use": {
+      "command": "npx",
+      "args": [
+        "@browsermcp/mcp@latest"
+      ]
+    }
+  }
+}
