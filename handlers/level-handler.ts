@@ -33,12 +33,23 @@ export interface DailyLevelHistory {
   date: Timestamp;
 }
 
-// Calculate XP needed for next level (100 XP per level)
+/**
+ * Computes the experience required to advance from the given level to the next level.
+ *
+ * @param level - The current numeric level
+ * @returns The experience points required to reach the next level
+ */
 function calculateExperienceToNextLevel(level: number): number {
   return 100 * level;
 }
 
-// Calculate total cumulative experience from level and remaining experience
+/**
+ * Compute the user's cumulative total experience given their current level and progress within that level.
+ *
+ * @param level - The user's current level (1-based)
+ * @param remainingExp - Experience points already earned toward the next level
+ * @returns The total accumulated experience across all completed levels plus `remainingExp`
+ */
 function calculateTotalExperience(level: number, remainingExp: number): number {
   let totalExp = remainingExp;
   // Sum up all XP required for previous levels
@@ -48,7 +59,12 @@ function calculateTotalExperience(level: number, remainingExp: number): number {
   return totalExp;
 }
 
-// Calculate level and remaining experience based on total experience
+/**
+ * Derives the current level and remaining experience from a cumulative total experience value.
+ *
+ * @param totalExperience - The user's total accumulated experience points across all levels
+ * @returns An object with `level` set to the current level and `experience` set to the remaining experience toward the next level
+ */
 function calculateLevelAndExperience(totalExperience: number): {
   level: number;
   experience: number;
@@ -66,6 +82,13 @@ function calculateLevelAndExperience(totalExperience: number): {
   return { level, experience: remainingExp };
 }
 
+/**
+ * Fetches the Level record for a given user from the "levels" collection.
+ *
+ * @param userId - The user's identifier; must be a non-empty string.
+ * @returns The user's Level record if found, `undefined` if no record exists.
+ * @throws Error if `userId` is empty or if retrieval from the data store fails.
+ */
 export async function getUserLevel(
   userId: string
 ): Promise<Level | undefined> {
@@ -81,6 +104,13 @@ export async function getUserLevel(
   }
 }
 
+/**
+ * Adds experience to a user's account, updating their level and recording history.
+ *
+ * @param userId - The ID of the user to credit experience to
+ * @param experience - The amount of experience to add (must be greater than 0)
+ * @throws When `userId` is empty, when `experience` is not greater than 0, or when the persistence/update operations fail
+ */
 export async function giveExperience(
   userId: string,
   experience: number
@@ -166,6 +196,18 @@ export async function giveExperience(
   }
 }
 
+/**
+ * Deducts experience points from a user's level record and updates the stored level, remaining experience, and experience-to-next-level.
+ *
+ * Total experience is floored at zero; level and remaining experience are recalculated from the resulting total.
+ *
+ * @param userId - The ID of the user whose experience will be reduced
+ * @param experience - The amount of experience to remove (must be greater than 0)
+ * @throws If `userId` is empty
+ * @throws If `experience` is not greater than 0
+ * @throws If the user's level record does not exist
+ * @throws If the update operation fails
+ */
 export async function removeExperience(
   userId: string,
   experience: number
@@ -207,6 +249,13 @@ export async function removeExperience(
   }
 }
 
+/**
+ * Retrieves a user's weekly aggregated level history record.
+ *
+ * @param userId - The user's unique identifier used to locate their weekly history document
+ * @returns The user's WeeklyLevelHistory record if present, `undefined` otherwise
+ * @throws If `userId` is empty or the retrieval operation fails
+ */
 export async function getWeeklyLevelHistory(
   userId: string
 ): Promise<WeeklyLevelHistory | undefined> {
@@ -224,6 +273,13 @@ export async function getWeeklyLevelHistory(
   }
 }
 
+/**
+ * Retrieve a user's daily level history record.
+ *
+ * @param userId - The ID of the user whose daily history to retrieve
+ * @returns The user's `DailyLevelHistory` record, or `undefined` if no record exists
+ * @throws If `userId` is empty. If the lookup fails, throws an error with the underlying message.
+ */
 export async function getDailyLevelHistory(
   userId: string
 ): Promise<DailyLevelHistory | undefined> {
@@ -241,6 +297,13 @@ export async function getDailyLevelHistory(
   }
 }
 
+/**
+ * Retrieves the top users ranked by level and experience.
+ *
+ * @param limit - Maximum number of users to return
+ * @returns An array of Level records ordered by `level` descending then `experience` descending
+ * @throws Error if `limit` is less than or equal to zero or if the retrieval fails
+ */
 export async function getTopUsersByLevel(limit: number): Promise<Level[]> {
   if (limit <= 0) {
     throw new Error("limit must be greater than 0");
@@ -260,6 +323,14 @@ export async function getTopUsersByLevel(limit: number): Promise<Level[]> {
   }
 }
 
+/**
+ * Fetches a user's level-history entries ordered by date from newest to oldest.
+ *
+ * @param userId - The ID of the user whose level history will be retrieved
+ * @returns An array of level history records for the user, ordered from newest to oldest
+ * @throws If `userId` is empty
+ * @throws If retrieving the history from the database fails
+ */
 export async function getUserLevelHistory(
   userId: string
 ): Promise<LevelHistory[]> {
@@ -280,6 +351,11 @@ export async function getUserLevelHistory(
   }
 }
 
+/**
+ * Deletes all entries in the "weekly-level-history" Firestore collection.
+ *
+ * @throws An Error if retrieving or deleting documents from the collection fails.
+ */
 export async function resetWeeklyLevels(): Promise<void> {
   try {
     const snapshot = await getDocs(collection(db, "weekly-level-history"));
@@ -294,6 +370,11 @@ export async function resetWeeklyLevels(): Promise<void> {
   }
 }
 
+/**
+ * Deletes all documents from the "daily-level-history" Firestore collection.
+ *
+ * @throws Error if the reset operation fails.
+ */
 export async function resetDailyLevels(): Promise<void> {
   try {
     const snapshot = await getDocs(collection(db, "daily-level-history"));

@@ -101,6 +101,17 @@ interface UserPoints {
   updatedAt: Timestamp;
 }
 
+/**
+ * Provides the main application layout with sidebar, header controls, and content area.
+ *
+ * Renders a persistent sidebar and header that include notification, points, and level controls;
+ * manages local notification state and subscribes to realtime user points and level updates
+ * (showing toasts and firing confetti on gains or level-ups). Opening the notification popover
+ * marks notifications as read.
+ *
+ * @param children - Content to render in the layout's main scrollable area
+ * @returns The platform layout element that wraps the provided `children`
+ */
 export default function PlatformLayout({
   children,
 }: {
